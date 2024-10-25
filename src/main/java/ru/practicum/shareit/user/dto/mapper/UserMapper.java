@@ -5,7 +5,7 @@ import ru.practicum.shareit.user.model.User;
 
 public class UserMapper {
 
-    public static User DtoToUser(UserDto userDto) {
+    public static User dtoToUser(UserDto userDto) {
         User user = new User();
         user.setId(userDto.getId());
         user.setName(userDto.getName());

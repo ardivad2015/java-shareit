@@ -1,6 +1,5 @@
 package ru.practicum.shareit.user.service;
 
-import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.error.ErrorResponse;
@@ -20,18 +19,18 @@ import java.util.Optional;
 @RequiredArgsConstructor
 class UserServiceImpl implements UserService {
 
-    private final UserRepository repository;
+    private final UserRepository userRepository;
 
     @Override
     public List<UserDto> getAllUsers() {
-        return repository.findAll().stream()
+        return userRepository.findAll().stream()
                 .map(UserMapper::userToDto)
                 .toList();
     }
 
     @Override
     public UserDto getUser(Long id) {
-        Optional<User> currentUserOptional = repository.findById(id);
+        Optional<User> currentUserOptional = userRepository.findById(id);
         if (currentUserOptional.isEmpty()) {
             throw new NotFoundException(String.format("Пользователь с id = %d не найден", id));
         }
@@ -41,27 +40,27 @@ class UserServiceImpl implements UserService {
     @Override
     public UserDto saveUser(UserDto userDto) {
         checkBeforeSaving(userDto);
-        User user = UserMapper.DtoToUser(userDto);
-        return UserMapper.userToDto(repository.save(user));
+        User user = UserMapper.dtoToUser(userDto);
+        return UserMapper.userToDto(userRepository.save(user));
     }
 
     @Override
     public UserDto updateUser(UserDto userDto) {
         checkBeforeUpdating(userDto);
-        User user = UserMapper.DtoToUser(userDto);
-        return UserMapper.userToDto(repository.update(user));
+        User user = UserMapper.dtoToUser(userDto);
+        return UserMapper.userToDto(userRepository.update(user));
     }
 
     @Override
     public void deleteUser(Long id) {
-        if (repository.delete(id).isEmpty()) {
+        if (userRepository.delete(id).isEmpty()) {
             throw new NotFoundException(String.format("Пользователь с id = %d не найден", id));
         }
     }
 
     private void checkBeforeSaving(UserDto userDto) {
         final List<String> errorList = new ArrayList<>();
-        Optional<User> currentUser = repository.findByEmail(userDto.getEmail());
+        Optional<User> currentUser = userRepository.findByEmail(userDto.getEmail());
         currentUser.ifPresent(user -> errorList.add(String.format("Email %s уже зарегистрирован у пользователя с id %d",
                 userDto.getEmail(), user.getId())));
         if (!errorList.isEmpty()) {
@@ -75,7 +74,7 @@ class UserServiceImpl implements UserService {
         getUser(userId);
         String Email = userDto.getEmail();
         if (Objects.nonNull(Email) && !Email.isBlank()) {
-            Optional<User> currentUserOptional = repository.findByEmail(userDto.getEmail());
+            Optional<User> currentUserOptional = userRepository.findByEmail(userDto.getEmail());
             if (currentUserOptional.isPresent()) {
                 User user = currentUserOptional.get();
                 if (!user.getId().equals(userId)) {
