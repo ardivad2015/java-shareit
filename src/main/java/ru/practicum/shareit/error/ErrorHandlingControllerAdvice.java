@@ -9,7 +9,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.shareit.exception.ConditionsNotMetException;
+import ru.practicum.shareit.exception.NotFoundException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -44,5 +46,13 @@ public class ErrorHandlingControllerAdvice {
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponse onConditionsNotMetException(ConditionsNotMetException e) {
         return e.getErrorResponse();
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse onNotFoundException(NotFoundException e) {
+        List<String> errorList = new ArrayList<>();
+        errorList.add(e.getMessage());
+        return  new ErrorResponse(errorList);
     }
 }
