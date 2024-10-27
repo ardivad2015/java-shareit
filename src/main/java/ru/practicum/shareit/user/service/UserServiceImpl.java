@@ -30,24 +30,21 @@ class UserServiceImpl implements UserService {
 
     @Override
     public UserDto getUser(Long id) {
-        Optional<User> currentUserOptional = userRepository.findById(id);
-        if (currentUserOptional.isEmpty()) {
-            throw new NotFoundException(String.format("Пользователь с id = %d не найден", id));
-        }
-        return UserMapper.userToDto(currentUserOptional.get());
+        return UserMapper.userToDto(userRepository.findById(id).orElseThrow(() ->
+                new NotFoundException(String.format("Пользователь с id = %d не найден", id))));
     }
 
     @Override
     public UserDto saveUser(UserDto userDto) {
         checkBeforeSaving(userDto);
-        User user = UserMapper.dtoToUser(userDto);
+        final User user = UserMapper.dtoToUser(userDto);
         return UserMapper.userToDto(userRepository.save(user));
     }
 
     @Override
     public UserDto updateUser(UserDto userDto) {
         checkBeforeUpdating(userDto);
-        User user = UserMapper.dtoToUser(userDto);
+        final User user = UserMapper.dtoToUser(userDto);
         return UserMapper.userToDto(userRepository.update(user));
     }
 
@@ -60,7 +57,7 @@ class UserServiceImpl implements UserService {
 
     private void checkBeforeSaving(UserDto userDto) {
         final List<String> errorList = new ArrayList<>();
-        Optional<User> currentUser = userRepository.findByEmail(userDto.getEmail());
+        final Optional<User> currentUser = userRepository.findByEmail(userDto.getEmail());
         currentUser.ifPresent(user -> errorList.add(String.format("Email %s уже зарегистрирован у пользователя с id %d",
                 userDto.getEmail(), user.getId())));
         if (!errorList.isEmpty()) {
@@ -70,11 +67,11 @@ class UserServiceImpl implements UserService {
 
     private void checkBeforeUpdating(UserDto userDto) {
         final List<String> errorList = new ArrayList<>();
-        Long userId = userDto.getId();
+        final Long userId = userDto.getId();
         getUser(userId);
-        String Email = userDto.getEmail();
+        final String Email = userDto.getEmail();
         if (Objects.nonNull(Email) && !Email.isBlank()) {
-            Optional<User> currentUserOptional = userRepository.findByEmail(userDto.getEmail());
+            final Optional<User> currentUserOptional = userRepository.findByEmail(userDto.getEmail());
             if (currentUserOptional.isPresent()) {
                 User user = currentUserOptional.get();
                 if (!user.getId().equals(userId)) {

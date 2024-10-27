@@ -36,7 +36,7 @@ public class ErrorHandlingControllerAdvice {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse onConstraintViolationException(ConstraintViolationException e) {
         final List<String> errorList = e.getConstraintViolations().stream()
-                .map(ConstraintViolation::getMessage)
+                .map(exep -> exep.getPropertyPath().toString() + " " + exep.getMessage())
                 .collect(Collectors.toList());
         log.error("onConstraintViolationException. {}", errorList);
         return new ErrorResponse(errorList);

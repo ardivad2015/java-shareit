@@ -20,24 +20,21 @@ public class InMemoryUserRepository extends BaseInMemoryRepository<User> impleme
 
     @Override
     public User save(User user) {
-        Long id = putInStorage(user);
+        final Long id = putInStorage(user);
         user.setId(id);
         return user;
     }
 
     @Override
     public User update(User user) {
-        Long userId = user.getId();
-        Optional<User> currentUserOptional = findById(userId);
-        if (currentUserOptional.isEmpty()) {
-            throw new NotFoundException(String.format("Пользователь с id = %d не найден", userId));
-        }
-        User currentUser = currentUserOptional.get();
-        String email = user.getEmail();
+        final Long userId = user.getId();
+        final User currentUser = findById(userId).orElseThrow(() ->
+                new NotFoundException(String.format("Пользователь с id = %d не найден", userId)));
+        final String email = user.getEmail();
         if (Objects.nonNull(email) && !email.isBlank()) {
             currentUser.setEmail(email);
         }
-        String name = user.getName();
+        final String name = user.getName();
         if (Objects.nonNull(name) && !name.isBlank()) {
             currentUser.setName(name);
         }

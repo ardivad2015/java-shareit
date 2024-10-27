@@ -1,17 +1,65 @@
 package ru.practicum.shareit.item.dao.memory;
 
 import org.springframework.stereotype.Repository;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dao.ItemRepository;
+import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.util.BaseInMemoryRepository;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
 @Repository
-public class InMemoryItemRepository extends BaseInMemoryRepository implements ItemRepository {
+public class InMemoryItemRepository extends BaseInMemoryRepository<Item> implements ItemRepository {
+
+    @Override
+    public List<Item> findByOwner(Long userId) {
+        return getFromStorage().stream()
+                .filter(item -> item.getOwner().equals(userId))
+                .toList();
+    }
+
+    @Override
+    public List<Item> findByText(String text) {
+        String searchText = text.toLowerCase();
+        return getFromStorage().stream()
+                .filter(item -> item.getAvailable() && (item.getName().toLowerCase().equals(searchText)
+                        || item.getDescription().toLowerCase().equals(searchText)))
+                .toList();
+    }
+
+    @Override
+    public Optional<Item> findById(Long id) {
+        return super.getById(id);
+    }
 
     @Override
     public Item save(Item item) {
-        Long id = putInStorage(item);
+        final Long id = putInStorage(item);
         item.setId(id);
         return item;
+    }
+
+    @Override
+    public Item update(Item item) {
+        final Long itemId = item.getId();
+        final Item currentItem = findById(itemId).orElseThrow(() ->
+                new NotFoundException(String.format("Вещь с id = %d не найдена", itemId)));
+        final String name = item.getName();
+        if (Objects.nonNull(name) && !name.isBlank()) {
+            currentItem.setName(name);
+        }
+        final String description = item.getDescription();
+        if (Objects.nonNull(description) && !description.isBlank()) {
+            currentItem.setDescription(description);
+        }
+        final Boolean available = item.getAvailable();
+        if (Objects.nonNull(available)) {
+            currentItem.setAvailable(available);
+        }
+        return currentItem;
     }
 }
