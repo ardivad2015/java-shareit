@@ -3,9 +3,7 @@ package ru.practicum.shareit.item.dao.memory;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dao.ItemRepository;
-import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.util.BaseInMemoryRepository;
 
 import java.util.List;
@@ -24,10 +22,10 @@ public class InMemoryItemRepository extends BaseInMemoryRepository<Item> impleme
 
     @Override
     public List<Item> findByText(String text) {
-        String searchText = text.toLowerCase();
+        final String searchText = text.toLowerCase();
         return getFromStorage().stream()
-                .filter(item -> item.getAvailable() && (item.getName().toLowerCase().equals(searchText)
-                        || item.getDescription().toLowerCase().equals(searchText)))
+                .filter(item -> item.getAvailable() && (item.getName().toLowerCase().contains(searchText)
+                        || item.getDescription().toLowerCase().contains(searchText)))
                 .toList();
     }
 
