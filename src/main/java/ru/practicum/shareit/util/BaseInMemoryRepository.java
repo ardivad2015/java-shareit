@@ -20,6 +20,10 @@ public class BaseInMemoryRepository<T> {
         return id;
     }
 
+    public void updateInStorage(Long id, T t) {
+        storage.put(id, t);
+    }
+
     public Optional<T> getById(Long id) {
         return Optional.ofNullable(storage.get(id));
     }

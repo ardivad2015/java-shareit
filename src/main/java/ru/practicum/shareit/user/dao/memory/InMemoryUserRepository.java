@@ -1,7 +1,6 @@
 package ru.practicum.shareit.user.dao.memory;
 
 import org.springframework.stereotype.Repository;
-import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.util.BaseInMemoryRepository;
@@ -27,18 +26,10 @@ public class InMemoryUserRepository extends BaseInMemoryRepository<User> impleme
 
     @Override
     public User update(User user) {
-        final Long userId = user.getId();
-        final User currentUser = findById(userId).orElseThrow(() ->
-                new NotFoundException(String.format("Пользователь с id = %d не найден", userId)));
-        final String email = user.getEmail();
-        if (Objects.nonNull(email) && !email.isBlank()) {
-            currentUser.setEmail(email);
+        if (Objects.nonNull(user)) {
+            updateInStorage(user.getId(), user);
         }
-        final String name = user.getName();
-        if (Objects.nonNull(name) && !name.isBlank()) {
-            currentUser.setName(name);
-        }
-        return currentUser;
+        return user;
     }
 
     @Override

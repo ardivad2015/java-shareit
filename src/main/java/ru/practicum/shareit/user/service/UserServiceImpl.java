@@ -44,8 +44,17 @@ class UserServiceImpl implements UserService {
     @Override
     public UserDto updateUser(UserDto userDto) {
         checkBeforeUpdating(userDto);
-        final User user = UserMapper.dtoToUser(userDto);
-        return UserMapper.userToDto(userRepository.update(user));
+        final Long userId = userDto.getId();
+        final UserDto currentUser = getUser(userId);
+        final String email = userDto.getEmail();
+        if (Objects.nonNull(email) && !email.isBlank()) {
+            currentUser.setEmail(email);
+        }
+        final String name = userDto.getName();
+        if (Objects.nonNull(name) && !name.isBlank()) {
+            currentUser.setName(name);
+        }
+        return UserMapper.userToDto(userRepository.update(UserMapper.dtoToUser(currentUser)));
     }
 
     @Override
