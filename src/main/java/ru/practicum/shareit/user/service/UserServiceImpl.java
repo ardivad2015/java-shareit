@@ -78,17 +78,13 @@ class UserServiceImpl implements UserService {
         final List<String> errorList = new ArrayList<>();
         final Long userId = userDto.getId();
         getUser(userId);
-        final String Email = userDto.getEmail();
-        if (Objects.nonNull(Email) && !Email.isBlank()) {
-            final Optional<User> currentUserOptional = userRepository.findByEmail(userDto.getEmail());
-            if (currentUserOptional.isPresent()) {
-                User user = currentUserOptional.get();
-                if (!user.getId().equals(userId)) {
-                    errorList.add(String.format("Email %s уже зарегистрирован у пользователя с id %d",
-                            userDto.getEmail(), user.getId()));
-                }
+        final Optional<User> currentUserOptional = userRepository.findByEmail(userDto.getEmail());
+        currentUserOptional.ifPresent(currentUser -> {
+            if (!currentUser.getId().equals(userId)) {
+                errorList.add(String.format("Email %s уже зарегистрирован у пользователя с id %d",
+                        userDto.getEmail(), currentUser.getId()));
             }
-        }
+        });
         if (!errorList.isEmpty()) {
             throw new ConditionsNotMetException(new ErrorResponse(errorList));
         }

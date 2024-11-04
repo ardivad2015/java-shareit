@@ -34,6 +34,9 @@ public class InMemoryUserRepository extends BaseInMemoryRepository<User> impleme
 
     @Override
     public Optional<User> findByEmail(String email) {
+        if (Objects.isNull(email) || email.isBlank()) {
+            return Optional.empty();
+        }
         return getFromStorage().stream()
                 .filter(user -> email.equals(user.getEmail()))
                 .findFirst();
