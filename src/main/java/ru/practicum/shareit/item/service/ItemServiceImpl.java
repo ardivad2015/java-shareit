@@ -2,77 +2,82 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.error.ErrorResponse;
 import ru.practicum.shareit.exception.ConditionsNotMetException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.item.dao.ItemRepository;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.user.service.UserService;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
-public class ItemServiceImpl implements ItemService {
+@Transactional(readOnly = true)
+public class ItemServiceImpl implements ItemService{
 
     private final ItemRepository itemRepository;
     private final UserService userService;
 
     @Override
-    public ItemDto saveItem(ItemDto itemDto) {
-        checkBeforeSave(itemDto);
-        final Item item = ItemMapper.dtoToItem(itemDto);
-        return ItemMapper.itemToDto(itemRepository.save(item));
+    public Item getById(Long id) {
+       return itemRepository.findById(id).orElseThrow(() ->
+               new NotFoundException(String.format("Вещь с id = %d не найдена", id)));
     }
 
     @Override
-    public ItemDto updateItem(ItemDto itemDto) {
-        checkBeforeUpdate(itemDto);
-        final Item item = ItemMapper.dtoToItem(itemDto);
-        return ItemMapper.itemToDto(itemRepository.update(item));
-    }
-
-    @Override
-    public ItemDto getItem(Long id) {
-        return ItemMapper.itemToDto(itemRepository.findById(id).orElseThrow(() ->
-                new NotFoundException(String.format("Вещь с id = %d не найдена", id))));
-    }
-
-    @Override
-    public List<ItemDto> getUsersItems(Long userId) {
-        userService.getUser(userId);
-        return itemRepository.findByOwner(userId).stream()
-                .map(ItemMapper::itemToDto)
-                .toList();
-    }
-
-    @Override
-    public List<ItemDto> searchItems(String text) {
+    public List<Item> searchItems(String text) {
         if (text.isBlank()) {
             return Collections.emptyList();
         }
-        return itemRepository.findByText(text).stream()
-                .map(ItemMapper::itemToDto)
-                .toList();
+        return itemRepository.findByTextSearch(text);
     }
 
-    private void checkBeforeSave(ItemDto itemDto) {
-        userService.getUser(itemDto.getOwner());
+    @Override
+    public List<Item> getUsersItems(Long userId) {
+        return itemRepository.findByOwnerId(userId);
     }
 
-    private void checkBeforeUpdate(ItemDto itemDto) {
-        final Long itemId = itemDto.getId();
-        final ItemDto currentItem = getItem(itemId);
-        final Long ownerId = itemDto.getOwner();
-        userService.getUser(ownerId);
+    @Transactional
+    @Override
+    public Item save(Item item, Long userId) {
+        User user = userService.getById(userId);
+        item.setOwner(user);
+        return itemRepository.save(item);
+    }
+
+    @Transactional
+    @Override
+    public Item update(Item updatedItem, Long userId) {
+        final Item item = getById(updatedItem.getId());
+        checkBeforeUpdate(item, userId);
+        final String name = updatedItem.getName();
+        if (Objects.nonNull(name) && !name.isBlank()) {
+            item.setName(name);
+        }
+        final String description = updatedItem.getDescription();
+        if (Objects.nonNull(description) && !description.isBlank()) {
+            item.setDescription(description);
+        }
+        final Boolean available = updatedItem.getAvailable();
+        if (Objects.nonNull(available)) {
+            item.setAvailable(available);
+        }
+        return itemRepository.save(item);
+    }
+
+    private void checkBeforeUpdate(Item item, Long userId) {
+        userService.getById(userId);
+        User owner = item.getOwner();
         final List<String> errorList = new ArrayList<>();
-        if (!currentItem.getOwner().equals(ownerId)) {
-            errorList.add(String.format("Владелец вещи %d, не совпадает с пользователем %d",
-                    currentItem.getOwner(), ownerId));
+        if (Objects.isNull(owner) || !owner.getId().equals(userId)) {
+            errorList.add(String.format("Владелец вещи не совпадает с пользователем %d", userId));
         }
         if (!errorList.isEmpty()) {
             throw new ConditionsNotMetException(new ErrorResponse(errorList));

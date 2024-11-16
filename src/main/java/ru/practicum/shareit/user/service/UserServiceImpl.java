@@ -2,12 +2,12 @@ package ru.practicum.shareit.user.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.error.ErrorResponse;
 import ru.practicum.shareit.exception.ConditionsNotMetException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.user.dao.UserRepository;
+import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.dto.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.ArrayList;
@@ -16,73 +16,64 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
 
     @Override
-    public List<UserDto> getAllUsers() {
-        return userRepository.findAll().stream()
-                .map(UserMapper::userToDto)
-                .toList();
+    public User getById(Long id) {
+        return userRepository.findById(id).orElseThrow(() ->
+                new NotFoundException(String.format("Пользователь с id = %d не найден", id)));
     }
 
+    @Transactional
     @Override
-    public UserDto getUser(Long id) {
-        return UserMapper.userToDto(userRepository.findById(id).orElseThrow(() ->
-                new NotFoundException(String.format("Пользователь с id = %d не найден", id))));
+    public User save(User user) {
+        checkBeforeSaving(user);
+        return userRepository.save(user);
     }
 
+    @Transactional
     @Override
-    public UserDto saveUser(UserDto userDto) {
-        checkBeforeSaving(userDto);
-        final User user = UserMapper.dtoToUser(userDto);
-        return UserMapper.userToDto(userRepository.save(user));
-    }
-
-    @Override
-    public UserDto updateUser(UserDto userDto) {
-        checkBeforeUpdating(userDto);
-        final Long userId = userDto.getId();
-        final UserDto currentUser = getUser(userId);
-        final String email = userDto.getEmail();
+    public User update(User updatedUser) {
+        User user = getById(updatedUser.getId());
+        checkBeforeUpdate(updatedUser);
+        final String email = updatedUser.getEmail();
         if (Objects.nonNull(email) && !email.isBlank()) {
-            currentUser.setEmail(email);
+            user.setEmail(email);
         }
-        final String name = userDto.getName();
+        final String name = updatedUser.getName();
         if (Objects.nonNull(name) && !name.isBlank()) {
-            currentUser.setName(name);
+            user.setName(name);
         }
-        return UserMapper.userToDto(userRepository.update(UserMapper.dtoToUser(currentUser)));
+        return user;
     }
 
+    @Transactional
     @Override
-    public void deleteUser(Long id) {
-        if (userRepository.delete(id).isEmpty()) {
-            throw new NotFoundException(String.format("Пользователь с id = %d не найден", id));
-        }
+    public void delete(Long id) {
+        userRepository.deleteById(id);
     }
 
-    private void checkBeforeSaving(UserDto userDto) {
+    private void checkBeforeSaving(User newUser) {
         final List<String> errorList = new ArrayList<>();
-        final Optional<User> currentUser = userRepository.findByEmail(userDto.getEmail());
-        currentUser.ifPresent(user -> errorList.add(String.format("Email %s уже зарегистрирован у пользователя с id %d",
-                userDto.getEmail(), user.getId())));
+        userRepository.findByEmail(newUser.getEmail())
+        .ifPresent(user -> errorList.add(String.format("Email %s уже зарегистрирован у пользователя с id %d",
+                newUser.getEmail(), user.getId())));
         if (!errorList.isEmpty()) {
             throw new ConditionsNotMetException(new ErrorResponse(errorList));
         }
     }
 
-    private void checkBeforeUpdating(UserDto userDto) {
+    private void checkBeforeUpdate(User updatedUser) {
         final List<String> errorList = new ArrayList<>();
-        final Long userId = userDto.getId();
-        getUser(userId);
-        final Optional<User> currentUserOptional = userRepository.findByEmail(userDto.getEmail());
-        currentUserOptional.ifPresent(currentUser -> {
-            if (!currentUser.getId().equals(userId)) {
+        userRepository.findByEmail(updatedUser.getEmail())
+        .ifPresent(user -> {
+            if (!user.getId().equals(updatedUser.getId())) {
                 errorList.add(String.format("Email %s уже зарегистрирован у пользователя с id %d",
-                        userDto.getEmail(), currentUser.getId()));
+                        updatedUser.getEmail(), user.getId()));
             }
         });
         if (!errorList.isEmpty()) {

@@ -1,7 +1,7 @@
 package ru.practicum.shareit.user.dao.memory;
 
 import org.junit.jupiter.api.Test;
-import ru.practicum.shareit.user.dao.UserRepository;
+import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.util.ObjectsFactory;
 

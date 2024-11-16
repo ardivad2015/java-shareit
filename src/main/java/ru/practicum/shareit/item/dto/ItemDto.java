@@ -16,7 +16,6 @@ public class ItemDto {
     @NotBlank
     @Size(max = 200)
     private String description;
-    Long owner;
     @NotNull
     private Boolean available;
 }
