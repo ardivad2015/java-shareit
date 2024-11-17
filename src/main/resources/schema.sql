@@ -13,3 +13,16 @@ CREATE TABLE IF NOT EXISTS users (
             available BOOLEAN NOT NULL,
             CONSTRAINT owner_fk FOREIGN KEY (owner_id) REFERENCES users(user_id) ON DELETE RESTRICT
   );
+
+  CREATE TABLE IF NOT EXISTS bookings
+   (
+       booking_id bigint  GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+       item_id bigint NOT NULL,
+       booker_id bigint NOT NULL,
+       start_date timestamp without time zone NOT NULL,
+       end_date timestamp without time zone NOT NULL,
+       status character varying(15) NOT NULL,
+       CONSTRAINT booker_fk FOREIGN KEY (booker_id) REFERENCES users (user_id) ON DELETE RESTRICT,
+       CONSTRAINT item_fk FOREIGN KEY (item_id) REFERENCES items (item_id) ON DELETE RESTRICT,
+       CONSTRAINT data_fields CHECK (start_date < end_date AND start_date > CURRENT_DATE AND end_date > CURRENT_DATE)
+   )

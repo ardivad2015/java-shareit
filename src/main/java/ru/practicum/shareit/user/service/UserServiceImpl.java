@@ -31,7 +31,7 @@ class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public User save(User user) {
-        checkBeforeSaving(user);
+        checkBeforeSave(user);
         return userRepository.save(user);
     }
 
@@ -57,7 +57,7 @@ class UserServiceImpl implements UserService {
         userRepository.deleteById(id);
     }
 
-    private void checkBeforeSaving(User newUser) {
+    private void checkBeforeSave(User newUser) {
         final List<String> errorList = new ArrayList<>();
         userRepository.findByEmail(newUser.getEmail())
         .ifPresent(user -> errorList.add(String.format("Email %s уже зарегистрирован у пользователя с id %d",
