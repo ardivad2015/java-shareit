@@ -16,13 +16,13 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public User getById(Long id) {
         return userRepository.findById(id).orElseThrow(() ->
                 new NotFoundException(String.format("Пользователь с id = %d не найден", id)));

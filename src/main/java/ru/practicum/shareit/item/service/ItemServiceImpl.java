@@ -19,19 +19,20 @@ import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class ItemServiceImpl implements ItemService{
 
     private final ItemRepository itemRepository;
     private final UserService userService;
 
     @Override
+    @Transactional(readOnly = true)
     public Item getById(Long id) {
        return itemRepository.findById(id).orElseThrow(() ->
                new NotFoundException(String.format("Вещь с id = %d не найдена", id)));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Item> searchItems(String text) {
         if (text.isBlank()) {
             return Collections.emptyList();
@@ -40,7 +41,9 @@ public class ItemServiceImpl implements ItemService{
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Item> getUsersItems(Long userId) {
+        userService.getById(userId);
         return itemRepository.findByOwnerId(userId);
     }
 

@@ -21,8 +21,8 @@ import java.time.LocalDateTime;
 public class BookingResponseDto {
 
     private Long id;
-    private ItemDto item;
-    private UserDto booker;
+    private IdBasedEntityDto item;
+    private IdBasedEntityDto booker;
     private LocalDateTime start;
     private LocalDateTime end;
     private BookingStatus status;
