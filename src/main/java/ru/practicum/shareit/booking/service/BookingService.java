@@ -10,10 +10,11 @@ import java.util.List;
 
 public interface BookingService {
 
-
     Booking findById(Long bookingId, Long userId);
 
-    Iterable<Booking> findByItemsOwner(Long userId, RequestBookingStateDto state);
+    List<Booking> findAllByBooker(Long userId, RequestBookingStateDto state);
+
+    List<Booking> findByItemsOwner(Long userId, RequestBookingStateDto state);
 
     Booking save(Booking booking);
 

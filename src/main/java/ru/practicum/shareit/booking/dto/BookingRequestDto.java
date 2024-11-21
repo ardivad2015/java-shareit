@@ -3,6 +3,7 @@ package ru.practicum.shareit.booking.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Getter;
@@ -26,10 +27,9 @@ public class BookingRequestDto {
     private Long itemId;
 
     @NotNull
-    @Future
+    @FutureOrPresent
     private LocalDateTime start;
 
     @NotNull
-    @Future
     private LocalDateTime end;
 }

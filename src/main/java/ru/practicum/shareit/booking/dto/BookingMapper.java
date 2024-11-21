@@ -12,5 +12,4 @@ public interface BookingMapper {
 
     BookingResponseDto toBookingResponseDto(Booking booking);
 
-    List<BookingResponseDto> toListBookingResponseDto(Iterable<Booking> bookings);
 }

@@ -1,26 +1,24 @@
 package ru.practicum.shareit.booking;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
-import org.springframework.boot.Banner;
+
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
 import ru.practicum.shareit.booking.dto.*;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.service.BookingService;
-import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
 import java.util.List;
-
 
 @RestController
 @RequestMapping(path = "/bookings")
@@ -35,15 +33,27 @@ public class BookingController {
 
     @GetMapping("/{id}")
     public BookingResponseDto findById(@PathVariable("id") @Positive Long bookingId,
-                                      @RequestHeader("X-Sharer-User-Id") @Positive Long userId) {
+                                       @RequestHeader("X-Sharer-User-Id") @Positive Long userId) {
         return bookingMapper.toBookingResponseDto(bookingService.findById(bookingId, userId));
     }
+
+    @GetMapping
+    public List<BookingResponseDto> findAllByBooker(@RequestHeader("X-Sharer-User-Id") @Positive Long userId,
+                                              @RequestParam(name = "state", defaultValue = "ALL")
+                                              @NotNull
+                                              RequestBookingStateDto state) {
+        return bookingService.findAllByBooker(userId, state).stream()
+                .map(bookingMapper::toBookingResponseDto).toList();
+    }
+
     @GetMapping("/owner")
     public List<BookingResponseDto> findByItemsOwner(@RequestHeader("X-Sharer-User-Id") @Positive Long userId,
-                                                    @RequestParam(name = "state", defaultValue = "ALL")
-                                                    @NotNull RequestBookingStateDto state) {
-        return bookingMapper.toListBookingResponseDto(bookingService.findByItemsOwner(userId, state));
+                                                     @RequestParam(name = "state", defaultValue = "ALL")
+                                                     @NotNull RequestBookingStateDto state) {
+        return bookingService.findByItemsOwner(userId, state).stream()
+                .map(bookingMapper::toBookingResponseDto).toList();
     }
+
     @PostMapping
     public BookingResponseDto create(@RequestHeader("X-Sharer-User-Id") @Positive Long userId,
                                      @Valid @RequestBody BookingRequestDto bookingRequestDto) {
@@ -58,9 +68,9 @@ public class BookingController {
 
     @PatchMapping("/{id}")
     public BookingResponseDto approve(@PathVariable("id") @Positive Long bookingId,
-                          @RequestHeader("X-Sharer-User-Id") @Positive Long userId,
-                          @RequestParam @NotNull Boolean approved) {
-        Booking booking = bookingService.approve(new BookingApproveDto(bookingId, userId, approved));
+                                      @RequestHeader("X-Sharer-User-Id") @Positive Long userId,
+                                      @RequestParam @NotNull Boolean approved) {
+        final Booking booking = bookingService.approve(new BookingApproveDto(bookingId, userId, approved));
         return bookingMapper.toBookingResponseDto(booking);
     }
 }

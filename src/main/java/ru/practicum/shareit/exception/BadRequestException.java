@@ -12,4 +12,10 @@ import java.util.List;
 public class BadRequestException extends RuntimeException {
     private final ErrorResponse errorResponse;
 
+    public static BadRequestException simpleBadRequestException(String message) {
+        final List<String> errorList = new ArrayList<>();
+        errorList.add(message);
+        return new BadRequestException(new ErrorResponse(errorList));
+    }
+
 }

@@ -3,6 +3,7 @@ package ru.practicum.shareit.item.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.error.ErrorResponse;
 import ru.practicum.shareit.exception.ConditionsNotMetException;
 import ru.practicum.shareit.exception.NotFoundException;
@@ -23,6 +24,7 @@ public class ItemServiceImpl implements ItemService{
 
     private final ItemRepository itemRepository;
     private final UserService userService;
+private final BookingRepository bookingRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -49,9 +51,7 @@ public class ItemServiceImpl implements ItemService{
 
     @Transactional
     @Override
-    public Item save(Item item, Long userId) {
-        User user = userService.getById(userId);
-        item.setOwner(user);
+    public Item save(Item item) {
         return itemRepository.save(item);
     }
 
@@ -77,7 +77,7 @@ public class ItemServiceImpl implements ItemService{
 
     private void checkBeforeUpdate(Item item, Long userId) {
         userService.getById(userId);
-        User owner = item.getOwner();
+        final User owner = item.getOwner();
         final List<String> errorList = new ArrayList<>();
         if (Objects.isNull(owner) || !owner.getId().equals(userId)) {
             errorList.add(String.format("Владелец вещи не совпадает с пользователем %d", userId));

@@ -36,25 +36,26 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final UserService userService;
 
-    @Transactional(readOnly = true)
-    public Booking getById(Long id) {
-        return bookingRepository.findById(id).orElseThrow(() ->
-                new NotFoundException(String.format("Бронирование с id = %d не найдено", id)));
-    }
-
     @Override
     @Transactional(readOnly = true)
     public Booking findById(Long bookingId, Long userId) {
-        final Booking booking = getByIdJoinFetch(bookingId);
+        final Booking booking = getById(bookingId);
         checkBeforeFindById(booking, userId);
         return booking;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Iterable<Booking> findByItemsOwner(Long userId, RequestBookingStateDto state) {
+    public List<Booking> findByItemsOwner(Long userId, RequestBookingStateDto state) {
         userService.getById(userId);
         return bookingRepository.findByItemsOwner(userId, state);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Booking> findAllByBooker(Long userId, RequestBookingStateDto state) {
+        userService.getById(userId);
+        return bookingRepository.findAllByBooker(userId, state);
     }
 
     @Override
@@ -67,7 +68,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional
     public Booking approve(BookingApproveDto bookingApproveDto) {
-        final Booking booking = getByIdJoinFetch(bookingApproveDto.getBookingId());
+        final Booking booking = getById(bookingApproveDto.getBookingId());
         checkBeforeApprove(booking, bookingApproveDto.getUserId());
         BookingStatus status = bookingApproveDto.getApproved() ? BookingStatus.APPROVED : BookingStatus.REJECTED;
         booking.setStatus(status);
@@ -75,8 +76,8 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Transactional(readOnly = true)
-    private Booking getByIdJoinFetch(Long id) {
-        return bookingRepository.findByIdJoinFetch(id).orElseThrow(() ->
+    private Booking getById(Long id) {
+        return bookingRepository.findByIdWithItemAndBookerAndOwnerEagerly(id).orElseThrow(() ->
                 new NotFoundException(String.format("Бронирование с id = %d не найдено", id)));
     }
 

@@ -24,5 +24,27 @@ CREATE TABLE IF NOT EXISTS users (
        status character varying(15) NOT NULL,
        CONSTRAINT booker_fk FOREIGN KEY (booker_id) REFERENCES users (user_id) ON DELETE RESTRICT,
        CONSTRAINT item_fk FOREIGN KEY (item_id) REFERENCES items (item_id) ON DELETE RESTRICT,
-       CONSTRAINT data_fields CHECK (start_date < end_date AND start_date > CURRENT_DATE AND end_date > CURRENT_DATE)
-   )
+       CONSTRAINT date_fields CHECK (start_date < end_date AND start_date >= CURRENT_TIMESTAMP)
+   );
+
+    CREATE TABLE IF NOT EXISTS items_bookings
+      (
+         comment_id bigint  GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+         item_id bigint NOT NULL,
+         author_id bigint NOT NULL,
+         created timestamp without time zone NOT NULL,
+         text character varying NOT NULL,
+         CONSTRAINT author_fk FOREIGN KEY (author_id) REFERENCES users (user_id),
+         CONSTRAINT item_fk FOREIGN KEY (item_id) REFERENCES items (item_id)
+      );
+
+   CREATE TABLE IF NOT EXISTS comments
+   (
+      comment_id bigint  GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+      item_id bigint NOT NULL,
+      author_id bigint NOT NULL,
+      created timestamp without time zone NOT NULL,
+      text character varying NOT NULL,
+      CONSTRAINT author_fk FOREIGN KEY (author_id) REFERENCES users (user_id),
+      CONSTRAINT item_fk FOREIGN KEY (item_id) REFERENCES items (item_id)
+   );

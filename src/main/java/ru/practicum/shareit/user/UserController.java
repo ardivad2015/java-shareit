@@ -8,6 +8,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.exception.ConditionsNotMetException;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
@@ -21,17 +22,17 @@ import java.util.Objects;
 public class UserController {
 
     private final UserService userService;
-    private final ModelMapper modelMapper;
+    private final UserMapper userMapper;
 
     @GetMapping("/{id}")
     public UserDto getById(@PathVariable("id") @Positive Long userId) {
-        return mapToUserDto(userService.getById(userId));
+        return userMapper.toUserDto(userService.getById(userId));
     }
 
     @PostMapping
     public UserDto create(@Valid @RequestBody UserDto userDto) {
-        User user = mapToUser(userDto);
-        return mapToUserDto(userService.save(user));
+        User user = userMapper.toUser(userDto);
+        return userMapper.toUserDto(userService.save(user));
     }
 
     @PatchMapping("/{id}")
@@ -40,22 +41,13 @@ public class UserController {
             throw ConditionsNotMetException.simpleConditionsNotMetException(
                     "Должно быть заполнено email или name");
         }
-        User user = mapToUser(userDto);
+        User user = userMapper.toUser(userDto);
         user.setId(userId);
-        return mapToUserDto(userService.update(user));
+        return userMapper.toUserDto(userService.update(user));
     }
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable("id") @Positive Long userId) {
         userService.delete(userId);
     }
-
-    public User mapToUser(UserDto userDto) {
-        return modelMapper.map(userDto, User.class);
-    }
-    public UserDto mapToUserDto(User user) {
-        return modelMapper.map(user, UserDto.class);
-    }
-
-
 }
