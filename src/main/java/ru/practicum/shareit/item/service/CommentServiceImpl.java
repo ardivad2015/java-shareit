@@ -15,6 +15,7 @@ import ru.practicum.shareit.item.repository.CommentRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -25,24 +26,18 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Comment> getItemComments(Item item) {
-        return commentRepository.findByItemWithAuthors(item);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<Comment> getItemsComments(List<Item> items) {
-        return commentRepository.findByItemsWithAuthors(items);
+    public List<Comment> getByItems(Set<Long> itemIds) {
+        return commentRepository.findAllByItemIdInWithAuthorEagerly(itemIds);
     }
 
     @Override
     @Transactional
     public Comment save(Comment comment) {
-        bookingRepository.findByItemAndBookerAndStatusAndEndBefore(comment.getItem(), comment.getAuthor(),
-                BookingStatus.APPROVED, comment.getCreated())
-                .orElseThrow(() ->
-                        BadRequestException.simpleBadRequestException("У пользователя" +
-                                " не было подтверждённого бронирования вещи"));
+        if (!bookingRepository.existsByItemAndBookerAndStatusAndEndBefore(comment.getItem(), comment.getAuthor(),
+                BookingStatus.APPROVED, comment.getCreated())) {
+            throw BadRequestException.simpleBadRequestException("У пользователя не было подтверждённого " +
+                    "бронирования вещи");
+        }
         return commentRepository.save(comment);
     }
 }

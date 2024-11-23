@@ -1,5 +1,6 @@
 package ru.practicum.shareit.user.service;
 
+import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 
@@ -13,5 +14,7 @@ public interface UserService {
 
     User getById(Long Id);
 
-    void delete(Long Id);
+    void delete(Long id);
+
+    void ExistsById(Long id);
 }

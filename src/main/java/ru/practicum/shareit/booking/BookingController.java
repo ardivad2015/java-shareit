@@ -32,25 +32,28 @@ public class BookingController {
     private final UserService userService;
 
     @GetMapping("/{id}")
-    public BookingResponseDto findById(@PathVariable("id") @Positive Long bookingId,
+    public BookingResponseDto getById(@PathVariable("id") @Positive Long bookingId,
                                        @RequestHeader("X-Sharer-User-Id") @Positive Long userId) {
-        return bookingMapper.toBookingResponseDto(bookingService.findById(bookingId, userId));
+        userService.ExistsById(userId);
+        return bookingMapper.toBookingResponseDto(bookingService.getToUserById(bookingId, userId));
     }
 
     @GetMapping
-    public List<BookingResponseDto> findAllByBooker(@RequestHeader("X-Sharer-User-Id") @Positive Long userId,
-                                              @RequestParam(name = "state", defaultValue = "ALL")
-                                              @NotNull
-                                              RequestBookingStateDto state) {
-        return bookingService.findAllByBooker(userId, state).stream()
+    public List<BookingResponseDto> getByBooker(@RequestHeader("X-Sharer-User-Id") @Positive Long userId,
+                                                    @RequestParam(name = "state", defaultValue = "ALL")
+                                                    @NotNull
+                                                    RequestBookingStateDto state) {
+        userService.ExistsById(userId);
+        return bookingService.getByBooker(userId, state).stream()
                 .map(bookingMapper::toBookingResponseDto).toList();
     }
 
     @GetMapping("/owner")
-    public List<BookingResponseDto> findByItemsOwner(@RequestHeader("X-Sharer-User-Id") @Positive Long userId,
+    public List<BookingResponseDto> getByItemOwner(@RequestHeader("X-Sharer-User-Id") @Positive Long userId,
                                                      @RequestParam(name = "state", defaultValue = "ALL")
                                                      @NotNull RequestBookingStateDto state) {
-        return bookingService.findByItemsOwner(userId, state).stream()
+        userService.ExistsById(userId);
+        return bookingService.getByItemOwner(userId, state).stream()
                 .map(bookingMapper::toBookingResponseDto).toList();
     }
 
@@ -70,7 +73,7 @@ public class BookingController {
     public BookingResponseDto approve(@PathVariable("id") @Positive Long bookingId,
                                       @RequestHeader("X-Sharer-User-Id") @Positive Long userId,
                                       @RequestParam @NotNull Boolean approved) {
-        final Booking booking = bookingService.approve(new BookingApproveDto(bookingId, userId, approved));
+        final Booking booking = bookingService.approve(bookingId, userId, approved);
         return bookingMapper.toBookingResponseDto(booking);
     }
 }

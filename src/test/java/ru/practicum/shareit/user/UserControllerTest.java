@@ -2,6 +2,7 @@ package ru.practicum.shareit.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -15,6 +16,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -36,13 +38,13 @@ class UserControllerTest {
         final UserDto user = ObjectsFactory.newUserDto(ObjectsFactory.newStringValue(), "name");
         final UserDto user2 = ObjectsFactory.newUserDto(ObjectsFactory.newStringValue(), "name");
         final List<UserDto> users = Arrays.asList(user, user2);
-        when(userService.getAllUsers()).thenReturn(users);
+        when(userService.getById(Mockito.anyList())).thenReturn(users);
         String response = this.mockMvc.perform(get("/users"))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
-
+        List<String> f = List.of("Шекспир","Байрон");
         assertEquals(objectMapper.writeValueAsString(users), response);
     }
 

@@ -22,28 +22,7 @@ public class BookingRepositoryCustomImpl extends QuerydslRepositorySupport imple
     }
 
     @Override
-    public Optional<Booking> findByLastOrNextByItem(Long itemId, int direct) {
-        final BooleanBuilder booleanBuilder = new BooleanBuilder();
-        final LocalDateTime currentTime = LocalDateTime.now();
-        final QBooking booking = QBooking.booking;
-        booleanBuilder.and(booking.item.id.eq(itemId))
-                .and(booking.status.eq(BookingStatus.APPROVED));
-        OrderSpecifier<LocalDateTime> orderSpecifier;
-        if (direct == -1) {
-            orderSpecifier = booking.start.desc();
-            booleanBuilder.and(booking.start.before(currentTime));
-        } else {
-            orderSpecifier = booking.start.asc();
-            booleanBuilder.and(booking.start.after(currentTime));
-        };
-        return from(booking)
-                .where(booleanBuilder.getValue())
-                .orderBy(orderSpecifier)
-                .limit(1).stream().findFirst();
-    }
-
-    @Override
-    public List<Booking> findAllByBooker(Long bookerId, RequestBookingStateDto state) {
+    public List<Booking> findAllByBookerWithItemAndBookerEagerly(Long bookerId, RequestBookingStateDto state) {
         final BooleanBuilder booleanBuilder = new BooleanBuilder();
         booleanBuilder.and(QBooking.booking.booker.id.eq(bookerId));
         buildByState(booleanBuilder, state);
@@ -55,7 +34,7 @@ public class BookingRepositoryCustomImpl extends QuerydslRepositorySupport imple
     }
 
     @Override
-    public List<Booking> findByItemsOwner(Long ownerId, RequestBookingStateDto state) {
+    public List<Booking> findAllByItemOwnerWithItemAndBookerEagerly(Long ownerId, RequestBookingStateDto state) {
         final BooleanBuilder booleanBuilder = new BooleanBuilder();
         booleanBuilder.and(QItem.item.owner.id.eq(ownerId));
         buildByState(booleanBuilder, state);

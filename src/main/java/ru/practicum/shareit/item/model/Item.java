@@ -3,6 +3,7 @@ package ru.practicum.shareit.item.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.DynamicUpdate;
@@ -14,6 +15,7 @@ import ru.practicum.shareit.user.model.User;
 @DynamicUpdate
 @Getter
 @Setter
+@EqualsAndHashCode(of = { "id" })
 public class Item {
 
     @Column(name = "item_id")

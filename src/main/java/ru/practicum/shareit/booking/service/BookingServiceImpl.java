@@ -5,6 +5,7 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.server.DelegatingServerHttpResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingApproveDto;
@@ -24,10 +25,7 @@ import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -35,27 +33,26 @@ public class BookingServiceImpl implements BookingService {
 
     private final BookingRepository bookingRepository;
     private final UserService userService;
+    private final ItemService itemService;
 
     @Override
     @Transactional(readOnly = true)
-    public Booking findById(Long bookingId, Long userId) {
+    public Booking getToUserById(Long bookingId, Long userId) {
         final Booking booking = getById(bookingId);
-        checkBeforeFindById(booking, userId);
+        checkBeforeGetById(booking, userId);
         return booking;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<Booking> findByItemsOwner(Long userId, RequestBookingStateDto state) {
-        userService.getById(userId);
-        return bookingRepository.findByItemsOwner(userId, state);
+    public List<Booking> getByItemOwner(Long userId, RequestBookingStateDto state) {
+        return bookingRepository.findAllByItemOwnerWithItemAndBookerEagerly(userId, state);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<Booking> findAllByBooker(Long userId, RequestBookingStateDto state) {
-        userService.getById(userId);
-        return bookingRepository.findAllByBooker(userId, state);
+    public List<Booking> getByBooker(Long userId, RequestBookingStateDto state) {
+        return bookingRepository.findAllByBookerWithItemAndBookerEagerly(userId, state);
     }
 
     @Override
@@ -67,18 +64,25 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public Booking approve(BookingApproveDto bookingApproveDto) {
-        final Booking booking = getById(bookingApproveDto.getBookingId());
-        checkBeforeApprove(booking, bookingApproveDto.getUserId());
-        BookingStatus status = bookingApproveDto.getApproved() ? BookingStatus.APPROVED : BookingStatus.REJECTED;
+    public Booking approve(Long bookingId, Long userId, Boolean approved) {
+        final Booking booking = getById(bookingId);
+        checkBeforeApprove(booking, userId);
+        BookingStatus status = approved ? BookingStatus.APPROVED : BookingStatus.REJECTED;
         booking.setStatus(status);
         return booking;
     }
 
+    @Override
     @Transactional(readOnly = true)
-    private Booking getById(Long id) {
+    public Booking getById(Long id) {
         return bookingRepository.findByIdWithItemAndBookerAndOwnerEagerly(id).orElseThrow(() ->
                 new NotFoundException(String.format("Бронирование с id = %d не найдено", id)));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Booking> getByItems(Set<Long> itemIds) {
+        return bookingRepository.findAllByItemIdInAndStatus(itemIds, BookingStatus.APPROVED);
     }
 
     private void checkBeforeSave(Booking newBooking) {
@@ -94,23 +98,19 @@ public class BookingServiceImpl implements BookingService {
 
     private void checkBeforeApprove(Booking booking, Long userId) {
         final List<String> errorList = new ArrayList<>();
-        //Только для нужного кода ошибки в постмэн тесте
+        //Почему-то в этом тесте в постмэне на эту ошибку код 400.
         try {
-            userService.getById(userId);
+            userService.ExistsById(userId);
         } catch (NotFoundException e) {
             errorList.add(e.getMessage());
             throw new BadRequestException(new ErrorResponse(errorList));
         }
         final Item item = booking.getItem();
         if (Objects.isNull(item)) {
-            throw new NotFoundException("В бронировании не указана вещь.");
+                throw new NotFoundException("В бронировании не указана вещь.");
         }
-        final User owner = item.getOwner();
-        if (Objects.isNull(owner)) {
-            throw new NotFoundException("Владелец вещи в бронировании не указан.");
-        }
-        if (!owner.getId().equals(userId)) {
-            errorList.add("Пользователь не является владельцем вещи.");
+        if (!itemService.userIsOwner(item, userId)) {
+            errorList.add("Пользователь не является владельцем вещи");
         }
         if (!booking.getStatus().equals(BookingStatus.WAITING)) {
             errorList.add("Бронирование не находится в статусе ожидания подтверждения.");
@@ -120,9 +120,8 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    private void checkBeforeFindById(Booking booking, Long userId) {
+    private void checkBeforeGetById(Booking booking, Long userId) {
         final List<String> errorList = new ArrayList<>();
-        userService.getById(userId);
         final Item item = booking.getItem();
         if (Objects.isNull(item)) {
             throw new NotFoundException("В бронировании не указана вещь.");

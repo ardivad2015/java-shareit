@@ -8,10 +8,9 @@ import java.util.Optional;
 
 public interface BookingRepositoryCustom {
 
-    List<Booking> findByItemsOwner(Long ownerId, RequestBookingStateDto state);
+    List<Booking> findAllByItemOwnerWithItemAndBookerEagerly(Long ownerId, RequestBookingStateDto state);
 
-    List<Booking> findAllByBooker(Long bookerId, RequestBookingStateDto state);
+    List<Booking> findAllByBookerWithItemAndBookerEagerly(Long bookerId, RequestBookingStateDto state);
 
-    Optional<Booking> findByLastOrNextByItem(Long itemId, int direct);
 }
 

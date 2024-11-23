@@ -2,6 +2,7 @@ package ru.practicum.shareit.item.dto;
 
 import lombok.Getter;
 import lombok.Setter;
+import ru.practicum.shareit.booking.dto.BookingPeriodDto;
 import ru.practicum.shareit.item.model.Comment;
 
 import java.util.ArrayList;
@@ -15,7 +16,7 @@ public class ItemEnhancedDto {
     private String name;
     private String description;
     private Boolean available;
-    private ItemsBookingDto lastBooking;
-    private ItemsBookingDto nextBooking;
+    private BookingPeriodDto lastBooking;
+    private BookingPeriodDto nextBooking;
     private List<CommentDto> comments = new ArrayList<>();
 }

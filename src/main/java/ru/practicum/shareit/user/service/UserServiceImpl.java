@@ -28,18 +28,26 @@ class UserServiceImpl implements UserService {
                 new NotFoundException(String.format("Пользователь с id = %d не найден", id)));
     }
 
-    @Transactional
     @Override
+    @Transactional(readOnly = true)
+    public void ExistsById(Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new NotFoundException(String.format("Пользователь с id = %d не найден", id));
+        }
+    }
+
+    @Override
+    @Transactional
     public User save(User user) {
-        checkBeforeSave(user);
+        checkEmail(user.getEmail());
         return userRepository.save(user);
     }
 
-    @Transactional
     @Override
+    @Transactional
     public User update(User updatedUser) {
         User user = getById(updatedUser.getId());
-        checkBeforeUpdate(updatedUser);
+        checkEmail(updatedUser.getEmail());
         final String email = updatedUser.getEmail();
         if (Objects.nonNull(email) && !email.isBlank()) {
             user.setEmail(email);
@@ -51,33 +59,19 @@ class UserServiceImpl implements UserService {
         return user;
     }
 
-    @Transactional
     @Override
+    @Transactional
     public void delete(Long id) {
         userRepository.deleteById(id);
     }
 
-    private void checkBeforeSave(User newUser) {
-        final List<String> errorList = new ArrayList<>();
-        userRepository.findByEmail(newUser.getEmail())
-        .ifPresent(user -> errorList.add(String.format("Email %s уже зарегистрирован у пользователя с id %d",
-                newUser.getEmail(), user.getId())));
-        if (!errorList.isEmpty()) {
-            throw new ConditionsNotMetException(new ErrorResponse(errorList));
+    private void checkEmail(String email) {
+        if (Objects.isNull(email) || email.isBlank()) {
+            return;
         }
-    }
-
-    private void checkBeforeUpdate(User updatedUser) {
-        final List<String> errorList = new ArrayList<>();
-        userRepository.findByEmail(updatedUser.getEmail())
-        .ifPresent(user -> {
-            if (!user.getId().equals(updatedUser.getId())) {
-                errorList.add(String.format("Email %s уже зарегистрирован у пользователя с id %d",
-                        updatedUser.getEmail(), user.getId()));
-            }
-        });
-        if (!errorList.isEmpty()) {
-            throw new ConditionsNotMetException(new ErrorResponse(errorList));
+        if (userRepository.existsByEmail(email)) {
+            throw ConditionsNotMetException.simpleConditionsNotMetException(
+                    String.format("Email %s уже зарегистрирован ", email));
         }
     }
 }

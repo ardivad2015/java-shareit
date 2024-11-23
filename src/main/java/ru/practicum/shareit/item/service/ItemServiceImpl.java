@@ -13,24 +13,29 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.user.service.UserService;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
-public class ItemServiceImpl implements ItemService{
+public class ItemServiceImpl implements ItemService {
 
     private final ItemRepository itemRepository;
     private final UserService userService;
-private final BookingRepository bookingRepository;
+    private final BookingRepository bookingRepository;
 
     @Override
     @Transactional(readOnly = true)
     public Item getById(Long id) {
-       return itemRepository.findById(id).orElseThrow(() ->
-               new NotFoundException(String.format("Вещь с id = %d не найдена", id)));
+        return itemRepository.findById(id).orElseThrow(() ->
+                new NotFoundException(String.format("Вещь с id = %d не найдена", id)));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void existsById(Long id) {
+        if (!itemRepository.existsById(id)) {
+            throw new NotFoundException(String.format("Вещь с id = %d не найдена", id));
+        }
     }
 
     @Override
@@ -39,14 +44,13 @@ private final BookingRepository bookingRepository;
         if (text.isBlank()) {
             return Collections.emptyList();
         }
-        return itemRepository.findByTextSearch(text);
+        return itemRepository.findAllByNameLikeOrDescriptionLikeAndAvailable(text);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<Item> getUsersItems(Long userId) {
-        userService.getById(userId);
-        return itemRepository.findByOwnerId(userId);
+    public List<Item> getByOwner(Long userId) {
+        return itemRepository.findAllByOwnerId(userId);
     }
 
     @Transactional
@@ -59,7 +63,10 @@ private final BookingRepository bookingRepository;
     @Override
     public Item update(Item updatedItem, Long userId) {
         final Item item = getById(updatedItem.getId());
-        checkBeforeUpdate(item, userId);
+        if (!userIsOwner(item, userId)) {
+            throw ConditionsNotMetException.simpleConditionsNotMetException(
+                    String.format("Владелец вещи не совпадает с пользователем %d", userId));
+        }
         final String name = updatedItem.getName();
         if (Objects.nonNull(name) && !name.isBlank()) {
             item.setName(name);
@@ -75,15 +82,9 @@ private final BookingRepository bookingRepository;
         return itemRepository.save(item);
     }
 
-    private void checkBeforeUpdate(Item item, Long userId) {
-        userService.getById(userId);
-        final User owner = item.getOwner();
-        final List<String> errorList = new ArrayList<>();
-        if (Objects.isNull(owner) || !owner.getId().equals(userId)) {
-            errorList.add(String.format("Владелец вещи не совпадает с пользователем %d", userId));
-        }
-        if (!errorList.isEmpty()) {
-            throw new ConditionsNotMetException(new ErrorResponse(errorList));
-        }
+    @Override
+    public boolean userIsOwner(Item item, Long userId) throws ConditionsNotMetException {
+        final Optional<Long> optOwnerId = Optional.ofNullable(item.getOwner()).map(User::getId);
+        return optOwnerId.map(userId::equals).orElse(false);
     }
 }
