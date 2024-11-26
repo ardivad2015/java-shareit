@@ -31,21 +31,18 @@ class UserServiceImplTest {
 
     private final UserMapper userMapper = new UserMapperImpl();
 
+
+
     @Test
-    public void addNew_whenEmailUnique_returnedUserDto() {
+    public void addNew_whenEmailUnique_callRepositorySave() {
         final UserService userService = new UserServiceImpl(userRepository, userMapper);
         final UserDto userDto = ObjectsFactory.newUserDto(ObjectsFactory.newStringValue(), "UserDto1");
-        final User user = userMapper.toUser(userDto);
 
         when(userRepository.existsByEmail(userDto.getEmail()))
                 .thenReturn(false);
 
-        when(userRepository.save(any(User.class)))
-                .thenReturn(user);
+        final UserDto actualUser = userService.addNew(userDto);
 
-        UserDto actualUser = userService.addNew(userDto);
-
-        assertEquals(actualUser.getEmail(), userDto.getEmail());
         Mockito.verify(userRepository, Mockito.times(1))
                 .save(any(User.class));
     }

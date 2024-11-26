@@ -146,7 +146,6 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<CommentDto> getItemsComments(Set<Long> itemSet) {
         return commentRepository.findAllByItemIdInWithAuthorEagerly(itemSet).stream()
                 .map(commentMapper::toCommentDto).toList();
