@@ -34,8 +34,7 @@ public class BookingController {
     @GetMapping("/{id}")
     public BookingResponseDto getById(@PathVariable("id") @Positive Long bookingId,
                                        @RequestHeader("X-Sharer-User-Id") @Positive Long userId) {
-        userService.ExistsById(userId);
-        return bookingMapper.toBookingResponseDto(bookingService.getToUserById(bookingId, userId));
+        return bookingService.getToUserById(bookingId, userId);
     }
 
     @GetMapping
@@ -43,37 +42,26 @@ public class BookingController {
                                                     @RequestParam(name = "state", defaultValue = "ALL")
                                                     @NotNull
                                                     RequestBookingStateDto state) {
-        userService.ExistsById(userId);
-        return bookingService.getByBooker(userId, state).stream()
-                .map(bookingMapper::toBookingResponseDto).toList();
+        return bookingService.getByBooker(userId, state);
     }
 
     @GetMapping("/owner")
     public List<BookingResponseDto> getByItemOwner(@RequestHeader("X-Sharer-User-Id") @Positive Long userId,
                                                      @RequestParam(name = "state", defaultValue = "ALL")
                                                      @NotNull RequestBookingStateDto state) {
-        userService.ExistsById(userId);
-        return bookingService.getByItemOwner(userId, state).stream()
-                .map(bookingMapper::toBookingResponseDto).toList();
+        return bookingService.getByItemOwner(userId, state);
     }
 
     @PostMapping
-    public BookingResponseDto create(@RequestHeader("X-Sharer-User-Id") @Positive Long userId,
+    public BookingResponseDto addNewBooking(@RequestHeader("X-Sharer-User-Id") @Positive Long userId,
                                      @Valid @RequestBody BookingRequestDto bookingRequestDto) {
-        Booking booking = bookingMapper.toBooking(bookingRequestDto);
-        Item item = itemService.getById(bookingRequestDto.getItemId());
-        User user = userService.getById(userId);
-        booking.setBooker(user);
-        booking.setItem(item);
-        booking.setStatus(BookingStatus.WAITING);
-        return bookingMapper.toBookingResponseDto(bookingService.save(booking));
+        return bookingService.addNew(bookingRequestDto, userId);
     }
 
     @PatchMapping("/{id}")
     public BookingResponseDto approve(@PathVariable("id") @Positive Long bookingId,
                                       @RequestHeader("X-Sharer-User-Id") @Positive Long userId,
                                       @RequestParam @NotNull Boolean approved) {
-        final Booking booking = bookingService.approve(bookingId, userId, approved);
-        return bookingMapper.toBookingResponseDto(booking);
+        return bookingService.approve(bookingId, userId, approved);
     }
 }

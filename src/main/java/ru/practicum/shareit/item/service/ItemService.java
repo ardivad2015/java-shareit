@@ -1,23 +1,33 @@
 package ru.practicum.shareit.item.service;
 
 import ru.practicum.shareit.exception.ConditionsNotMetException;
+import ru.practicum.shareit.item.dto.CommentDto;
+import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemEnhancedDto;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.List;
+import java.util.Set;
 
 public interface ItemService {
 
-    Item getById(Long id);
+    ItemDto getById(Long id);
 
-    List<Item> searchItems(String text);
+    ItemEnhancedDto getByIdWithComments(Long id);
 
-    List<Item> getByOwner(Long userId);
+    List<ItemEnhancedDto> getByOwner(Long userId);
 
-    Item save(Item item);
+    List<ItemDto> searchItems(String text);
 
-    Item update(Item item, Long userId);
+    ItemDto addNewItem(ItemDto item, Long ownerId);
+
+    ItemDto updateItem(ItemDto item, Long userId);
 
     void existsById(Long id);
 
-    boolean userIsOwner(Item item, Long userId);
+    void checkPermission(Item item, Long userId);
+
+    CommentDto addNewComment(CommentDto comment, Long itemId, Long userId);
+
+    List<CommentDto> getItemsComments(Set<Long> itemSet);
 }
