@@ -25,7 +25,6 @@ public class ObjectsFactory {
         Item item = new Item();
         item.setName(name);
         item.setDescription(description);
-        item.setOwner(owner);
         item.setAvailable(true);
         return item;
     }
@@ -34,7 +33,6 @@ public class ObjectsFactory {
         ItemDto item = new ItemDto();
         item.setName(name);
         item.setDescription(description);
-        item.setOwner(owner);
         item.setAvailable(true);
         return item;
     }

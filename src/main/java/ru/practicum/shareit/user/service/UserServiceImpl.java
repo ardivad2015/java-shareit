@@ -30,7 +30,7 @@ class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void ExistsById(Long id) {
+    public void existsById(Long id) {
         if (!userRepository.existsById(id)) {
             throw new NotFoundException(String.format("Пользователь с id = %d не найден", id));
         }

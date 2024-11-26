@@ -74,7 +74,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemEnhancedDto> getByOwner(Long userId) {
-        userService.ExistsById(userId);
+        userService.existsById(userId);
 
         Map<Long, Item> items = itemRepository.findAllByOwnerId(userId) .stream()
                 .collect(Collectors.toMap(Item::getId, Function.identity()));
@@ -110,7 +110,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public ItemDto updateItem(ItemDto updatedItem, Long userId) {
-        userService.ExistsById(userId);
+        userService.existsById(userId);
 
         final Item item = findById(updatedItem.getId());
         checkPermission(item, userId);

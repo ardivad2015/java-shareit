@@ -50,14 +50,14 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingResponseDto> getByItemOwner(Long userId, RequestBookingStateDto state) {
-        userService.ExistsById(userId);
+        userService.existsById(userId);
         return bookingRepository.findAllByItemOwnerWithItemAndBookerEagerly(userId, state).stream()
                 .map(bookingMapper::toBookingResponseDto).toList();
     }
 
     @Override
     public List<BookingResponseDto> getByBooker(Long userId, RequestBookingStateDto state) {
-        userService.ExistsById(userId);
+        userService.existsById(userId);
         return bookingRepository.findAllByBookerWithItemAndBookerEagerly(userId, state).stream()
                 .map(bookingMapper::toBookingResponseDto).toList();
     }
@@ -86,7 +86,7 @@ public class BookingServiceImpl implements BookingService {
         final Booking booking = getById(bookingId);
         // в постмэн тестах в этом эндпоинте для несуществующего пользователя нужна ошибка не 404, а 400.
         try {
-            userService.ExistsById(userId);
+            userService.existsById(userId);
         } catch (NotFoundException e) {
             throw BadRequestException.simpleBadRequestException(e.getMessage());
         }
@@ -104,7 +104,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private void checkPermission(Booking booking, Long userId) {
-        userService.ExistsById(userId);
+        userService.existsById(userId);
 
         final Item item = booking.getItem();
 
