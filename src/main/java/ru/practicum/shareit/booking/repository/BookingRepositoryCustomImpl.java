@@ -1,11 +1,11 @@
 package ru.practicum.shareit.booking.repository;
 
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.OrderSpecifier;
-import org.springframework.stereotype.Repository;
+
+import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
+
 import ru.practicum.shareit.booking.dto.RequestBookingStateDto;
 import ru.practicum.shareit.booking.model.Booking;
-import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.model.QBooking;
 import ru.practicum.shareit.item.model.QItem;
@@ -13,7 +13,6 @@ import ru.practicum.shareit.user.model.QUser;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 public class BookingRepositoryCustomImpl extends QuerydslRepositorySupport implements BookingRepositoryCustom {
 
@@ -30,7 +29,9 @@ public class BookingRepositoryCustomImpl extends QuerydslRepositorySupport imple
         return from(QBooking.booking)
                 .innerJoin(QBooking.booking.item, QItem.item).fetchJoin()
                 .innerJoin(QBooking.booking.booker, QUser.user).fetchJoin()
-                .where(booleanBuilder.getValue()).fetch();
+                .where(booleanBuilder.getValue())
+                .orderBy(QBooking.booking.start.desc())
+                .fetch();
     }
 
     @Override
@@ -41,7 +42,9 @@ public class BookingRepositoryCustomImpl extends QuerydslRepositorySupport imple
         return from(QBooking.booking)
                 .innerJoin(QBooking.booking.item, QItem.item).fetchJoin()
                 .innerJoin(QBooking.booking.booker, QUser.user).fetchJoin()
-                .where(booleanBuilder.getValue()).fetch();
+                .where(booleanBuilder.getValue())
+                .orderBy(QBooking.booking.start.desc())
+                .fetch();
 
     }
 

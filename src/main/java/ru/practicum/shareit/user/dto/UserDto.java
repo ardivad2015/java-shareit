@@ -10,11 +10,9 @@ import lombok.Setter;
 public class UserDto {
 
     private Long id;
-
     @NotBlank
     @Email
     private String email;
-
     @NotBlank
     private String name;
 }

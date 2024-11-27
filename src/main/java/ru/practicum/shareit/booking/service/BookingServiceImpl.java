@@ -1,32 +1,22 @@
 package ru.practicum.shareit.booking.service;
 
-import com.querydsl.core.types.PredicateOperation;
-import com.querydsl.core.types.dsl.BooleanExpression;
-import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
-import org.springframework.http.server.DelegatingServerHttpResponse;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.*;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
-import ru.practicum.shareit.error.ErrorResponse;
 import ru.practicum.shareit.exception.BadRequestException;
-import ru.practicum.shareit.exception.ConditionsNotMetException;
-import ru.practicum.shareit.exception.InsufficientPermissionException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.model.QItem;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -35,16 +25,24 @@ import java.util.*;
 public class BookingServiceImpl implements BookingService {
 
     private final BookingRepository bookingRepository;
+    private final ItemService itemService;
     private final UserService userService;
     private final UserMapper userMapper;
-    private final ItemService itemService;
     private final ItemMapper itemMapper;
     private final BookingMapper bookingMapper;
 
     @Override
     public BookingResponseDto getToUserById(Long bookingId, Long userId) {
+        userService.existsById(userId);
+
         final Booking booking = getById(bookingId);
-        checkPermission(booking, userId);
+        final User owner = booking.getItem().getOwner();
+        final User booker = booking.getBooker();
+
+        if (!owner.getId().equals(userId) && !booker.getId().equals(userId)) {
+            throw BadRequestException.simpleBadRequestException("Пользователь должен быть либо владельцем вещи," +
+                    " либо автором бронирования");
+        }
         return bookingMapper.toBookingResponseDto(booking);
     }
 
@@ -101,33 +99,6 @@ public class BookingServiceImpl implements BookingService {
         BookingStatus status = approved ? BookingStatus.APPROVED : BookingStatus.REJECTED;
         booking.setStatus(status);
         return bookingMapper.toBookingResponseDto(booking);
-    }
-
-    private void checkPermission(Booking booking, Long userId) {
-        userService.existsById(userId);
-
-        final Item item = booking.getItem();
-
-        if (Objects.isNull(item)) {
-            throw new NotFoundException("В бронировании не указана вещь.");
-        }
-
-        final User owner = item.getOwner();
-
-        if (Objects.isNull(owner)) {
-            throw new NotFoundException("Владелец вещи в бронировании не указан.");
-        }
-
-        final User booker = booking.getBooker();
-
-        if (Objects.isNull(booker)) {
-            throw new NotFoundException("Автор бронирования не указан.");
-        }
-
-        if (!owner.getId().equals(userId) && !booker.getId().equals(userId)) {
-            throw BadRequestException.simpleBadRequestException("Пользователь должен быть либо владельцем вещи," +
-                    " либо автором бронирования");
-        }
     }
 
     private Booking getById(Long id) {

@@ -3,8 +3,6 @@ package ru.practicum.shareit.item.dto;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
-import org.modelmapper.internal.bytebuddy.asm.Advice;
-import ru.practicum.shareit.util.dto.IdBasedEntityDto;
 
 import java.time.LocalDateTime;
 

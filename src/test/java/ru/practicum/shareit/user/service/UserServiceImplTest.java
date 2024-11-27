@@ -1,13 +1,9 @@
 package ru.practicum.shareit.user.service;
 
-import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
 import ru.practicum.shareit.exception.ConditionsNotMetException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
@@ -21,6 +17,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,9 +25,10 @@ class UserServiceImplTest {
 
     @Mock
     private UserRepository userRepository;
+    @Captor
+    ArgumentCaptor<User> userArgumentCaptor;
 
     private final UserMapper userMapper = new UserMapperImpl();
-
 
 
     @Test
@@ -43,7 +41,7 @@ class UserServiceImplTest {
 
         final UserDto actualUser = userService.addNew(userDto);
 
-        Mockito.verify(userRepository, Mockito.times(1))
+        verify(userRepository, Mockito.times(1))
                 .save(any(User.class));
     }
 
@@ -55,14 +53,14 @@ class UserServiceImplTest {
         when(userRepository.existsByEmail(userDto.getEmail()))
                 .thenReturn(true);
 
-        assertThrows(ConditionsNotMetException.class,() -> userService.addNew(userDto));
-        Mockito.verify(userRepository, Mockito.never())
+        assertThrows(ConditionsNotMetException.class, () -> userService.addNew(userDto));
+        verify(userRepository, Mockito.never())
                 .save(any(User.class));
 
     }
 
     @Test
-    public void update_whenUserExistAndEmailUnique_returnedUserDto() {
+    public void update_whenUserExistAndEmailUnique_thenUpdatedFields() {
         final UserService userService = new UserServiceImpl(userRepository, userMapper);
         final UserDto userDto = ObjectsFactory.newUserDto(ObjectsFactory.newStringValue(), "UserDto1");
         final Long id = 1L;
@@ -75,15 +73,17 @@ class UserServiceImplTest {
                 .thenReturn(Optional.of(user));
         when(userRepository.findByEmail(userDto.getEmail()))
                 .thenReturn(Optional.of(user));
-        when(userRepository.save(user))
-                .thenReturn(user);
 
-        UserDto actualUser = userService.update(userDto);
+        final UserDto actualUser = userService.update(userDto);
 
-        assertEquals(actualUser.getEmail(), userDto.getEmail());
-        assertEquals(actualUser.getName(), userDto.getName());
-        assertEquals(actualUser.getId(), userDto.getId());
-        Mockito.verify(userRepository, Mockito.times(1))
+        verify(userRepository).save(userArgumentCaptor.capture());
+
+        final User savedUser = userArgumentCaptor.getValue();
+
+        assertEquals(savedUser.getEmail(), userDto.getEmail());
+        assertEquals(savedUser.getName(), userDto.getName());
+        assertEquals(savedUser.getId(), userDto.getId());
+        verify(userRepository, Mockito.times(1))
                 .save(user);
     }
 
@@ -98,8 +98,8 @@ class UserServiceImplTest {
         when(userRepository.findById(id))
                 .thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class,() -> userService.update(userDto));
-        Mockito.verify(userRepository, Mockito.never())
+        assertThrows(NotFoundException.class, () -> userService.update(userDto));
+        verify(userRepository, Mockito.never())
                 .save(any(User.class));
     }
 
@@ -113,15 +113,15 @@ class UserServiceImplTest {
 
         userDto.setId(id);
         user.setId(id);
-        user2.setId(id+1);
+        user2.setId(id + 1);
 
         when(userRepository.findById(id))
                 .thenReturn(Optional.of(user));
         when(userRepository.findByEmail(userDto.getEmail()))
                 .thenReturn(Optional.of(user2));
 
-        assertThrows(ConditionsNotMetException.class,() -> userService.update(userDto));
-        Mockito.verify(userRepository, Mockito.never())
+        assertThrows(ConditionsNotMetException.class, () -> userService.update(userDto));
+        verify(userRepository, Mockito.never())
                 .save(any(User.class));
     }
 
@@ -144,7 +144,7 @@ class UserServiceImplTest {
         when(userRepository.existsById(id))
                 .thenReturn(false);
 
-        assertThrows(NotFoundException.class,() -> userService.existsById(id));
+        assertThrows(NotFoundException.class, () -> userService.existsById(id));
     }
 
     @Test
@@ -180,7 +180,7 @@ class UserServiceImplTest {
         when(userRepository.findById(id))
                 .thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class,() -> userService.getById(id));
+        assertThrows(NotFoundException.class, () -> userService.getById(id));
     }
 
 }

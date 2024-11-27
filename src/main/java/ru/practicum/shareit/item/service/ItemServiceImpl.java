@@ -1,19 +1,16 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
-import org.hibernate.cache.spi.support.AbstractReadWriteAccess;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import ru.practicum.shareit.booking.dto.BookingMapper;
 import ru.practicum.shareit.booking.dto.BookingPeriodDto;
 import ru.practicum.shareit.booking.dto.BookingResponseDto;
-import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
-import ru.practicum.shareit.booking.service.BookingService;
-import ru.practicum.shareit.error.ErrorResponse;
 import ru.practicum.shareit.exception.BadRequestException;
-import ru.practicum.shareit.exception.ConditionsNotMetException;
 import ru.practicum.shareit.exception.InsufficientPermissionException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.*;
@@ -24,7 +21,6 @@ import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.user.service.UserService;
 
 import java.time.LocalDateTime;
@@ -76,14 +72,14 @@ public class ItemServiceImpl implements ItemService {
     public List<ItemEnhancedDto> getByOwner(Long userId) {
         userService.existsById(userId);
 
-        Map<Long, Item> items = itemRepository.findAllByOwnerId(userId) .stream()
+        final Map<Long, Item> items = itemRepository.findAllByOwnerId(userId).stream()
                 .collect(Collectors.toMap(Item::getId, Function.identity()));
 
-        Map<Long, List<CommentDto>> comments = getItemsComments(items.keySet())
+        final Map<Long, List<CommentDto>> comments = getItemsComments(items.keySet())
                 .stream()
                 .collect(Collectors.groupingBy(CommentDto::getItemId));
 
-        Map<Long, List<BookingResponseDto>> bookings = bookingRepository.findAllByItemIdInAndStatus(items.keySet(),
+        final Map<Long, List<BookingResponseDto>> bookings = bookingRepository.findAllByItemIdInAndStatus(items.keySet(),
                         BookingStatus.APPROVED).stream()
                 .map(bookingMapper::toBookingResponseDto)
                 .collect(Collectors.groupingBy(booking -> booking.getItem().getId()));
@@ -178,9 +174,9 @@ public class ItemServiceImpl implements ItemService {
 
     private ItemEnhancedDto makeItemEnhancedDto(Item item, List<CommentDto> comments,
                                                 List<BookingResponseDto> bookings) {
-        LocalDateTime currentDateLime = LocalDateTime.now();
+        final LocalDateTime currentDateLime = LocalDateTime.now();
 
-        Optional<BookingPeriodDto> optLastBooking = bookings.stream()
+        final Optional<BookingPeriodDto> optLastBooking = bookings.stream()
                 .sorted(Comparator.comparing(BookingResponseDto::getStart).reversed())
                 .filter(booking -> booking.getStart().isBefore(currentDateLime)
                         || booking.getStart().isEqual(currentDateLime))
@@ -188,14 +184,15 @@ public class ItemServiceImpl implements ItemService {
                 .map(booking -> new BookingPeriodDto(booking.getStart(), booking.getEnd()))
                 .findFirst();
 
-        Optional<BookingPeriodDto> optNextBooking = bookings.stream()
+        final Optional<BookingPeriodDto> optNextBooking = bookings.stream()
                 .sorted(Comparator.comparing(BookingResponseDto::getStart))
                 .filter(booking -> booking.getStart().isAfter(currentDateLime))
                 .limit(1)
                 .map(booking -> new BookingPeriodDto(booking.getStart(), booking.getEnd()))
                 .findFirst();
 
-        ItemEnhancedDto itemEnhancedDto = itemMapper.toItemEnhancedDto(item);
+        final ItemEnhancedDto itemEnhancedDto = itemMapper.toItemEnhancedDto(item);
+
         itemEnhancedDto.setComments(comments);
         optLastBooking.ifPresent(itemEnhancedDto::setLastBooking);
         optNextBooking.ifPresent(itemEnhancedDto::setNextBooking);

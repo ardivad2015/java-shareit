@@ -1,9 +1,10 @@
 package ru.practicum.shareit.user.service;
 
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.error.ErrorResponse;
+
 import ru.practicum.shareit.exception.ConditionsNotMetException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserMapper;
@@ -11,10 +12,7 @@ import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -44,7 +42,7 @@ class UserServiceImpl implements UserService {
                     String.format("Email %s уже зарегистрирован ", userDto.getEmail()));
         }
 
-        User user = userMapper.toUser(userDto);
+        final User user = userMapper.toUser(userDto);
         return userMapper.toUserDto(userRepository.save(user));
     }
 

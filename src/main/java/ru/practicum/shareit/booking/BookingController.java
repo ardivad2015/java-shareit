@@ -10,13 +10,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import ru.practicum.shareit.booking.dto.*;
-import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.service.BookingService;
-import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.service.ItemService;
-import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.service.UserService;
 
 import java.util.List;
 
@@ -26,10 +20,7 @@ import java.util.List;
 @Validated
 public class BookingController {
 
-    private final BookingMapper bookingMapper;
-    private final ItemService itemService;
     private final BookingService bookingService;
-    private final UserService userService;
 
     @GetMapping("/{id}")
     public BookingResponseDto getById(@PathVariable("id") @Positive Long bookingId,

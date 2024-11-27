@@ -5,26 +5,23 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.hibernate.annotations.DynamicUpdate;
-import ru.practicum.shareit.item.model.Item;
 
-import java.util.List;
 
 @Entity
 @Table(name = "users")
 @DynamicUpdate
-@Getter @Setter
+@Getter
+@Setter
 public class User {
 
     @Column(name = "user_id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @NotBlank
     @Email
     @Column
     private String email;
-
     @NotBlank
     @Column(name = "user_name")
     private String name;

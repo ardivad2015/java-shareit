@@ -7,6 +7,7 @@ import ru.practicum.shareit.booking.dto.BookingRequestDto;
 import java.util.Objects;
 
 public class TimePeriodValidator implements ConstraintValidator<TimePeriod, BookingRequestDto> {
+
     @Override
     public void initialize(TimePeriod constraint) {
     }
