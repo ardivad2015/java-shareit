@@ -9,6 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ItemDto {
+
     private Long id;
     @NotBlank
     @Size(max = 50)
@@ -16,7 +17,6 @@ public class ItemDto {
     @NotBlank
     @Size(max = 200)
     private String description;
-    Long owner;
     @NotNull
     private Boolean available;
 }

@@ -21,20 +21,18 @@ public class ObjectsFactory {
         return user;
     }
 
-    public static Item newItem(String name, String description, Long owner) {
+    public static Item newItem(String name, String description) {
         Item item = new Item();
         item.setName(name);
         item.setDescription(description);
-        item.setOwner(owner);
         item.setAvailable(true);
         return item;
     }
 
-    public static ItemDto newItemDto(String name, String description, Long owner) {
+    public static ItemDto newItemDto(String name, String description) {
         ItemDto item = new ItemDto();
         item.setName(name);
         item.setDescription(description);
-        item.setOwner(owner);
         item.setAvailable(true);
         return item;
     }
