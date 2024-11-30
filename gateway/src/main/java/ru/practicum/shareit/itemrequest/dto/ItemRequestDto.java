@@ -1,11 +1,8 @@
-package ru.practicum.shareit.request.dto;
+package ru.practicum.shareit.itemrequest.dto;
 
-import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.util.dto.IdBasedEntityDto;
 
 import java.time.LocalDateTime;
 

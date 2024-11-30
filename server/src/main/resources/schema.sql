@@ -10,8 +10,10 @@ CREATE TABLE IF NOT EXISTS users (
             item_name VARCHAR(50) NOT NULL,
             description VARCHAR(255) NOT NULL,
             owner_id BIGINT NOT NULL,
+            request_id BIGINT NOT NULL,
             available BOOLEAN NOT NULL,
-            CONSTRAINT owner_fk FOREIGN KEY (owner_id) REFERENCES users(user_id) ON DELETE RESTRICT
+            CONSTRAINT owner_fk FOREIGN KEY (owner_id) REFERENCES users(user_id) ON DELETE RESTRICT,
+            CONSTRAINT  request_fk FOREIGN KEY (request_id) REFERENCES item_requests(request_id)
   );
 
   CREATE INDEX ON items (owner_id);
@@ -44,3 +46,14 @@ CREATE TABLE IF NOT EXISTS users (
    );
 
    CREATE INDEX ON comments (item_id);
+
+   CREATE TABLE IF NOT EXISTS item_requests
+      (
+         request_id bigint  GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+         author_id bigint NOT NULL,
+         created timestamp without time zone NOT NULL,
+         description VARCHAR(255) NOT NULL,
+         CONSTRAINT author_fk FOREIGN KEY (author_id) REFERENCES users (user_id)
+      );
+
+   CREATE INDEX ON item_requests (author_id);

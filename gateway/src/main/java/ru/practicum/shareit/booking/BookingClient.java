@@ -1,5 +1,7 @@
 package ru.practicum.shareit.booking;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -7,11 +9,13 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.DefaultUriBuilderFactory;
+import ru.practicum.shareit.booking.dto.BookingRequestDto;
+import ru.practicum.shareit.booking.dto.RequestBookingStateDto;
 import ru.practicum.shareit.client.BaseClient;
+
+import java.util.Map;
 
 @Service
 public class BookingClient extends BaseClient {
@@ -30,5 +34,27 @@ public class BookingClient extends BaseClient {
 
     public ResponseEntity<Object> getBooking(Long bookingId, Long userId) {
         return get("/"+bookingId, userId);
+    }
+
+    public ResponseEntity<Object> getByBooker(Long userId, RequestBookingStateDto state) {
+        Map<String, Object> parameters = Map.of(
+                "state", state.name());
+        return get("?state={state}", userId, parameters);
+    }
+
+    public ResponseEntity<Object> getByItemOwner(Long userId, RequestBookingStateDto state) {
+        Map<String, Object> parameters = Map.of(
+                "state", state.name());
+        return get("/owner?state={state}", userId, parameters);
+    }
+
+    public ResponseEntity<Object> addNewBooking(Long userId, BookingRequestDto bookingRequestDto) {
+        return post("", userId, bookingRequestDto);
+    }
+
+    public ResponseEntity<Object> approveBooking(Long bookingId, Long userId, Boolean approved) {
+        Map<String, Object> parameters = Map.of(
+                "approved", approved);
+        return patch("/"+bookingId+"?approved={approved}", userId, parameters, null);
     }
 }

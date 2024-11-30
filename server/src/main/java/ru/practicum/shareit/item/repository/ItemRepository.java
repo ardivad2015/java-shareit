@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public interface ItemRepository extends JpaRepository<Item, Long> {
@@ -17,5 +18,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     List<Item> findAllByNameLikeOrDescriptionLikeAndAvailable(@Param("text") String text);
 
     List<Item> findAllByOwnerId(Long id);
+
+    List<Item> findAllByRequestIdIn(Set<Long> itemRequests);
 }
 
