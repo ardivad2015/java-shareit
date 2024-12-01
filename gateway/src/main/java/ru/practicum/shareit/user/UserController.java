@@ -5,8 +5,9 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.exception.ConditionsNotMetException;
+import ru.practicum.shareit.error.BadRequestException;
 import ru.practicum.shareit.user.dto.UserDto;
 
 import java.util.Objects;
@@ -32,7 +33,7 @@ public class UserController {
     @PatchMapping("/{id}")
     public ResponseEntity<Object> updateUser(@PathVariable("id") @Positive Long userId, @RequestBody UserDto userDto) {
         if (Objects.isNull(userDto.getEmail()) && Objects.isNull(userDto.getName())) {
-            throw ConditionsNotMetException.simpleConditionsNotMetException(
+            throw BadRequestException.simpleBadRequestException(
                     "Должно быть заполнено email или name");
         }
         return userClient.updateUser(userId, userDto);

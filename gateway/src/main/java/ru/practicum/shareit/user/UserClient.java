@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.shareit.client.BaseClient;
-import ru.practicum.shareit.exception.ConditionsNotMetException;
 import ru.practicum.shareit.user.dto.UserDto;
 
 import java.util.Objects;

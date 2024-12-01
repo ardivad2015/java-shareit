@@ -9,6 +9,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.NewItemDto;
 
 import java.util.List;
 
@@ -37,8 +38,8 @@ public class ItemController {
 
     @PostMapping
     public ResponseEntity<Object> addNewItem(@RequestHeader("X-Sharer-User-Id") @Positive Long userId,
-                          @Valid @RequestBody ItemDto itemDto) {
-        return itemClient.addNewItem(userId, itemDto);
+                          @Valid @RequestBody NewItemDto newItemDto) {
+        return itemClient.addNewItem(userId, newItemDto);
     }
 
     @PatchMapping("/{id}")

@@ -1,11 +1,13 @@
 package ru.practicum.shareit.request.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingPeriodDto;
 import ru.practicum.shareit.booking.dto.BookingResponseDto;
 import ru.practicum.shareit.booking.model.BookingStatus;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemEnhancedDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
@@ -59,14 +61,38 @@ public class ItemRequestServiceImpl implements ItemRequestService{
                 .stream()
                 .collect(Collectors.toMap(ItemRequest::getId, Function.identity()));
 
-        final Map<Long, List<Item>> items = itemRepository.findAllByRequestIdIn(itemRequests.keySet())
+        final Map<Long, List<Item>> items = itemRepository.findAllByItemRequestIdIn(itemRequests.keySet())
                 .stream()
                 .collect(Collectors.groupingBy(item -> item.getItemRequest().getId()));
 
         return itemRequests.values().stream()
+                .sorted(Comparator.comparing(ItemRequest::getCreated).reversed())
                 .map(itemRequest -> makeItemRequestResponseDto(itemRequest, items.getOrDefault(itemRequest.getId(),
                                 Collections.emptyList())))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ItemRequestDto> getAll() {
+        return itemRequestRepository.findAll(Sort.by("created").descending()).stream()
+                .map(itemRequestMapper::toItemRequestDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public ItemRequestResponseDto getById(Long itemRequestId) {
+        final ItemRequest itemRequest = findById(itemRequestId);
+        final List<Item> items = itemRepository.findAllByItemRequestId(itemRequestId);
+        final ItemRequestResponseDto itemRequestResponseDto = itemRequestMapper.toItemRequestResponseDto(itemRequest);
+
+        itemRequestResponseDto.setItems(items.stream().map(itemMapper::toIdBasedDto).toList());
+        return itemRequestResponseDto;
+    }
+
+    @Override
+    public ItemRequest findById(Long itemRequestId) {
+        return itemRequestRepository.findById(itemRequestId).orElseThrow(() ->
+                new NotFoundException(String.format("Запрос с id = %d не найден", itemRequestId)));
     }
 
     private ItemRequestResponseDto makeItemRequestResponseDto(ItemRequest itemRequest, List<Item> items) {

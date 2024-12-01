@@ -8,7 +8,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class ItemDto {
+public class NewItemDto {
 
     private Long id;
     @NotBlank

@@ -1,6 +1,7 @@
 package ru.practicum.shareit.util;
 
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.NewItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
@@ -31,6 +32,14 @@ public class ObjectsFactory {
 
     public static ItemDto newItemDto(String name, String description) {
         ItemDto item = new ItemDto();
+        item.setName(name);
+        item.setDescription(description);
+        item.setAvailable(true);
+        return item;
+    }
+
+    public static NewItemDto newNewItemDto(String name, String description) {
+        NewItemDto item = new NewItemDto();
         item.setName(name);
         item.setDescription(description);
         item.setAvailable(true);

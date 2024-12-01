@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -19,6 +20,8 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.dto.UserMapperImpl;
@@ -45,6 +48,8 @@ class ItemServiceImplTest {
     private BookingRepository bookingRepository;
     @Mock
     private CommentRepository commentRepository;
+    @Mock
+    private ItemRequestRepository itemRequestRepository;
     @Captor
     ArgumentCaptor<Item> itemArgumentCaptor;
     @Captor
@@ -57,18 +62,17 @@ class ItemServiceImplTest {
     private final BookingMapper bookingMapper = new BookingMapperImpl();
     private final UserMapper userMapper = new UserMapperImpl();
 
-
     @Test
-    public void addNewItem_whenUserFound_callRepositorySave() {
+    public void addNewItem_whenUserFound_callRepositorySaveWithNullRequestId() {
         final ItemService itemService = new ItemServiceImpl(itemRepository, userService, bookingRepository, itemMapper,
-                commentRepository, commentMapper, bookingMapper, userMapper);
-        final ItemDto itemDto = ObjectsFactory.newItemDto(ObjectsFactory.newStringValue(),
+                commentRepository, itemRequestRepository, commentMapper, bookingMapper, userMapper);
+        final NewItemDto itemDto = ObjectsFactory.newNewItemDto(ObjectsFactory.newStringValue(),
                 ObjectsFactory.newStringValue());
         final UserDto owner = ObjectsFactory.newUserDto("email", "name");
 
         when(userService.getById(1L)).thenReturn(owner);
 
-        final ItemDto actualItem = itemService.addNewItem(itemDto, 1L);
+        final NewItemDto actualItem = itemService.addNewItem(itemDto, 1L);
 
         verify(itemRepository).save(itemArgumentCaptor.capture());
         final Item savedItem = itemArgumentCaptor.getValue();
@@ -77,13 +81,44 @@ class ItemServiceImplTest {
                 .save(any(Item.class));
         assertEquals(savedItem.getName(), itemDto.getName());
         assertEquals(savedItem.getOwner().getEmail(), owner.getEmail());
+        assertNull(savedItem.getItemRequest());
+    }
+
+    @Test
+    public void addNewItem_whenUserFoundAndRequestNonull_callRepositorySaveWithRequestId() {
+        final ItemService itemService = new ItemServiceImpl(itemRepository, userService, bookingRepository, itemMapper,
+                commentRepository, itemRequestRepository, commentMapper, bookingMapper, userMapper);
+        final NewItemDto itemDto = ObjectsFactory.newNewItemDto(ObjectsFactory.newStringValue(),
+                ObjectsFactory.newStringValue());
+        final UserDto owner = ObjectsFactory.newUserDto("email", "name");
+        final User author = ObjectsFactory.newUser("email2", "name2");
+        final ItemRequest itemRequest = new ItemRequest();
+
+        author.setId(2L);
+        itemRequest.setId(1L);
+        itemRequest.setAuthor(author);
+        itemDto.setRequestId(1L);
+
+        when(userService.getById(1L)).thenReturn(owner);
+        when(itemRequestRepository.findById(1L)).thenReturn(Optional.of(itemRequest));
+
+        final NewItemDto actualItem = itemService.addNewItem(itemDto, 1L);
+
+        verify(itemRepository).save(itemArgumentCaptor.capture());
+        final Item savedItem = itemArgumentCaptor.getValue();
+
+        verify(itemRepository, Mockito.times(1))
+                .save(any(Item.class));
+        assertEquals(savedItem.getName(), itemDto.getName());
+        assertEquals(savedItem.getOwner().getEmail(), owner.getEmail());
+        assertEquals(savedItem.getItemRequest().getId(), itemRequest.getId());
     }
 
     @Test
     public void addNewItem_whenUserNotFound_NotFoundExceptionThrown() {
         final ItemService itemService = new ItemServiceImpl(itemRepository, userService, bookingRepository, itemMapper,
-                commentRepository, commentMapper, bookingMapper, userMapper);
-        final ItemDto itemDto = ObjectsFactory.newItemDto(ObjectsFactory.newStringValue(), ObjectsFactory.newStringValue());
+                commentRepository, itemRequestRepository, commentMapper, bookingMapper, userMapper);
+        final NewItemDto itemDto = ObjectsFactory.newNewItemDto(ObjectsFactory.newStringValue(), ObjectsFactory.newStringValue());
 
         when(userService.getById(1L)).thenThrow(NotFoundException.class);
 
@@ -95,7 +130,7 @@ class ItemServiceImplTest {
     @Test
     public void updateItem_whenUserFoundAndItsOwner_updateFields() {
         final ItemService itemService = new ItemServiceImpl(itemRepository, userService, bookingRepository, itemMapper,
-                commentRepository, commentMapper, bookingMapper, userMapper);
+                commentRepository, itemRequestRepository, commentMapper, bookingMapper, userMapper);
         final ItemDto itemDto = ObjectsFactory.newItemDto(ObjectsFactory.newStringValue(),
                 ObjectsFactory.newStringValue());
         final Item item = itemMapper.toItem(itemDto);
@@ -122,7 +157,7 @@ class ItemServiceImplTest {
     @Test
     public void updateItem_whenUserIsNotOwner_thenInsufficientPermissionExceptionThrown() {
         final ItemService itemService = new ItemServiceImpl(itemRepository, userService, bookingRepository, itemMapper,
-                commentRepository, commentMapper, bookingMapper, userMapper);
+                commentRepository, itemRequestRepository, commentMapper, bookingMapper, userMapper);
         final ItemDto itemDto = ObjectsFactory.newItemDto(ObjectsFactory.newStringValue(),
                 ObjectsFactory.newStringValue());
         final Item item = itemMapper.toItem(itemDto);
@@ -145,7 +180,7 @@ class ItemServiceImplTest {
     @Test
     public void getByOwner_whenUserFound_returnItemWithComments() {
         final ItemService itemService = new ItemServiceImpl(itemRepository, userService, bookingRepository, itemMapper,
-                commentRepository, commentMapper, bookingMapper, userMapper);
+                commentRepository, itemRequestRepository, commentMapper, bookingMapper, userMapper);
         final Item item = ObjectsFactory.newItem("item", "item");
         final User owner = ObjectsFactory.newUser("emailowner", "owner");
         final User author = ObjectsFactory.newUser("emailauthor", "nameauthor");
@@ -208,7 +243,7 @@ class ItemServiceImplTest {
     @Test
     public void existsById_whenItemNotFound_thenNotFoundExceptionThrown() {
         final ItemService itemService = new ItemServiceImpl(itemRepository, userService, bookingRepository, itemMapper,
-                commentRepository, commentMapper, bookingMapper, userMapper);
+                commentRepository, itemRequestRepository, commentMapper, bookingMapper, userMapper);
 
         when(itemRepository.existsById(1L)).thenReturn(false);
         assertThrows(NotFoundException.class, () -> itemService.existsById(1L));
@@ -217,7 +252,7 @@ class ItemServiceImplTest {
     @Test
     public void getByIdWithComments_whenItemFound_thenReturnItemWithComments() {
         final ItemService itemService = new ItemServiceImpl(itemRepository, userService, bookingRepository, itemMapper,
-                commentRepository, commentMapper, bookingMapper, userMapper);
+                commentRepository, itemRequestRepository, commentMapper, bookingMapper, userMapper);
         final Item item = ObjectsFactory.newItem("item", "item");
         final User owner = ObjectsFactory.newUser("emailowner", "owner");
         final User author = ObjectsFactory.newUser("emailauthor", "nameauthor");
@@ -251,7 +286,7 @@ class ItemServiceImplTest {
     @Test
     public void getById_whenItemFound_thenReturnItem() {
         final ItemService itemService = new ItemServiceImpl(itemRepository, userService, bookingRepository, itemMapper,
-                commentRepository, commentMapper, bookingMapper, userMapper);
+                commentRepository, itemRequestRepository, commentMapper, bookingMapper, userMapper);
         final Item item = ObjectsFactory.newItem("item", "item");
         final User owner = ObjectsFactory.newUser("emailowner", "owner");
 
@@ -270,7 +305,7 @@ class ItemServiceImplTest {
     @Test
     public void getById_whenItemNotFound_thenNotFoundExceptionThrown() {
         final ItemService itemService = new ItemServiceImpl(itemRepository, userService, bookingRepository, itemMapper,
-                commentRepository, commentMapper, bookingMapper, userMapper);
+                commentRepository, itemRequestRepository, commentMapper, bookingMapper, userMapper);
         when(itemRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> itemService.getById(1L));
@@ -279,7 +314,7 @@ class ItemServiceImplTest {
     @Test
     public void searchItems_whenTextNotBlank_thenCallRepository() {
         final ItemService itemService = new ItemServiceImpl(itemRepository, userService, bookingRepository, itemMapper,
-                commentRepository, commentMapper, bookingMapper, userMapper);
+                commentRepository, itemRequestRepository, commentMapper, bookingMapper, userMapper);
 
         final List<ItemDto> items = itemService.searchItems("text");
 
@@ -292,7 +327,7 @@ class ItemServiceImplTest {
     @Test
     public void searchItems_whenTextBlank_thenReturnEmptyList() {
         final ItemService itemService = new ItemServiceImpl(itemRepository, userService, bookingRepository, itemMapper,
-                commentRepository, commentMapper, bookingMapper, userMapper);
+                commentRepository, itemRequestRepository, commentMapper, bookingMapper, userMapper);
 
         final List<ItemDto> items = itemService.searchItems("");
 
@@ -304,7 +339,7 @@ class ItemServiceImplTest {
     @Test
     public void checkPermission_whenUserIdEqualsOwnerId_thenNoExceptionsThrown() {
         final ItemService itemService = new ItemServiceImpl(itemRepository, userService, bookingRepository, itemMapper,
-                commentRepository, commentMapper, bookingMapper, userMapper);
+                commentRepository, itemRequestRepository, commentMapper, bookingMapper, userMapper);
         final Item item = ObjectsFactory.newItem("item", "item");
         final User owner = ObjectsFactory.newUser("emailowner", "owner");
 
@@ -318,7 +353,7 @@ class ItemServiceImplTest {
     @Test
     public void checkPermission_whenUserIdNotEqualsOwnerId_thenInsufficientPermissionExceptionThrown() {
         final ItemService itemService = new ItemServiceImpl(itemRepository, userService, bookingRepository, itemMapper,
-                commentRepository, commentMapper, bookingMapper, userMapper);
+                commentRepository, itemRequestRepository, commentMapper, bookingMapper, userMapper);
         final Item item = ObjectsFactory.newItem("item", "item");
         final User owner = ObjectsFactory.newUser("emailowner", "owner");
 
@@ -332,7 +367,7 @@ class ItemServiceImplTest {
     @Test
     public void addNewComment_whenUserFoundAndBookingWas_thenCallRepositorySave() {
         final ItemService itemService = new ItemServiceImpl(itemRepository, userService, bookingRepository, itemMapper,
-                commentRepository, commentMapper, bookingMapper, userMapper);
+                commentRepository, itemRequestRepository, commentMapper, bookingMapper, userMapper);
         final Item item = ObjectsFactory.newItem("item", "item");
         final User owner = ObjectsFactory.newUser("emailowner", "owner");
         final User author = ObjectsFactory.newUser("emailauthor", "nameauthor");
