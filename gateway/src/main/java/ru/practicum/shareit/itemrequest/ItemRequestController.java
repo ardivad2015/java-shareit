@@ -8,9 +8,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.itemrequest.dto.ItemRequestDto;
 
-import java.util.List;
-
-
 @RestController
 @RequestMapping(path = "/requests")
 @Validated

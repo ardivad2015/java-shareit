@@ -3,7 +3,6 @@ package ru.practicum.shareit.client;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.asm.Type;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;

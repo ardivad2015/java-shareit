@@ -1,6 +1,5 @@
 package ru.practicum.shareit.item.service;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -13,6 +12,7 @@ import ru.practicum.shareit.booking.dto.BookingMapperImpl;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.exception.BadRequestException;
 import ru.practicum.shareit.exception.InsufficientPermissionException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.*;
@@ -34,8 +34,7 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ItemServiceImplTest {
@@ -396,5 +395,31 @@ class ItemServiceImplTest {
         assertEquals(savedComment.getItem().getName(), item.getName());
         assertEquals(savedComment.getAuthor().getId(), author.getId());
         assertEquals(savedComment.getText(), commentDto.getText());
+    }
+
+    @Test
+    public void addNewComment_whenUserFoundAndBookingWasNot_thenBadRequestExceptionThrown() {
+        final ItemService itemService = new ItemServiceImpl(itemRepository, userService, bookingRepository, itemMapper,
+                commentRepository, itemRequestRepository, commentMapper, bookingMapper, userMapper);
+        final Item item = ObjectsFactory.newItem("item", "item");
+        final User owner = ObjectsFactory.newUser("emailowner", "owner");
+        final User author = ObjectsFactory.newUser("emailauthor", "nameauthor");
+
+        owner.setId(1L);
+        author.setId(2L);
+        item.setId(1L);
+        item.setOwner(owner);
+
+        final CommentDto commentDto = new CommentDto();
+
+        commentDto.setText("comment");
+
+        when(userService.getById(2L)).thenReturn(userMapper.toUserDto(author));
+        when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
+        when(bookingRepository.existsByItemIdAndBookerIdAndStatusAndEndBefore(eq(1L), eq(2L),
+                eq(BookingStatus.APPROVED), any(LocalDateTime.class))).thenReturn(false);
+
+        assertThrows(BadRequestException.class, () -> itemService.addNewComment(commentDto, 1L, 2L));
+        verify(commentRepository, never()).save(any(Comment.class));
     }
 }

@@ -7,15 +7,10 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.practicum.shareit.booking.dto.BookingMapper;
-import ru.practicum.shareit.booking.dto.BookingMapperImpl;
-import ru.practicum.shareit.booking.repository.BookingRepository;
-import ru.practicum.shareit.exception.ConditionsNotMetException;
+import org.springframework.data.domain.Sort;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.*;
-import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestMapper;
@@ -36,8 +31,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ItemRequestServiceImplTest {
@@ -46,21 +40,11 @@ class ItemRequestServiceImplTest {
     @Mock
     private UserService userService;
     @Mock
-    private BookingRepository bookingRepository;
-    @Mock
-    private CommentRepository commentRepository;
-    @Mock
     private ItemRequestRepository itemRequestRepository;
     @Captor
     ArgumentCaptor<ItemRequest> itemRequestArgumentCaptor;
-    @Captor
-    ArgumentCaptor<String> stringArgumentCaptor;
-    @Captor
-    ArgumentCaptor<Comment> commentArgumentCaptor;
 
     private final ItemMapper itemMapper = new ItemMapperImpl();
-    private final CommentMapper commentMapper = new CommentMapperImpl();
-    private final BookingMapper bookingMapper = new BookingMapperImpl();
     private final UserMapper userMapper = new UserMapperImpl();
     private final ItemRequestMapper itemRequestMapper = new ItemRequestMapperImpl();
 
@@ -164,5 +148,14 @@ class ItemRequestServiceImplTest {
         assertEquals(actualItemResponse.getId(), 1);
         List<IdBasedEntityDto> actualItems = actualItemResponse.getItems();
         assertEquals(actualItems.size(), 2);
+    }
+
+    @Test
+    public void getAll_whenCall_repositoryCall() {
+        final ItemRequestService itemRequestService = new ItemRequestServiceImpl(itemRequestRepository,
+                itemRepository, userService, userMapper, itemRequestMapper, itemMapper);
+
+        List<ItemRequestDto> actualItemRequestsDto = itemRequestService.getAll();
+        verify(itemRequestRepository, times(1)).findAll(any(Sort.class));
     }
 }

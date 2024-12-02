@@ -17,8 +17,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
@@ -133,7 +132,7 @@ class UserServiceImplTest {
         when(userRepository.existsById(id))
                 .thenReturn(true);
 
-        assertDoesNotThrow(() -> userService.existsById(id));
+        userService.existsById(id);
     }
 
     @Test
@@ -181,6 +180,13 @@ class UserServiceImplTest {
                 .thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> userService.getById(id));
+    }
+
+    @Test
+    public void deleteById() {
+        final UserService userService = new UserServiceImpl(userRepository, userMapper);
+        userService.delete(1L);
+        verify(userRepository, times(1)).deleteById(1L);
     }
 
 }

@@ -1,15 +1,11 @@
 package ru.practicum.shareit.booking;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
 import ru.practicum.shareit.booking.dto.RequestBookingStateDto;
@@ -33,7 +29,7 @@ public class BookingClient extends BaseClient {
     }
 
     public ResponseEntity<Object> getBooking(Long bookingId, Long userId) {
-        return get("/"+bookingId, userId);
+        return get("/" + bookingId, userId);
     }
 
     public ResponseEntity<Object> getByBooker(Long userId, RequestBookingStateDto state) {
@@ -55,6 +51,6 @@ public class BookingClient extends BaseClient {
     public ResponseEntity<Object> approveBooking(Long bookingId, Long userId, Boolean approved) {
         Map<String, Object> parameters = Map.of(
                 "approved", approved);
-        return patch("/"+bookingId+"?approved={approved}", userId, parameters, null);
+        return patch("/" + bookingId + "?approved={approved}", userId, parameters, null);
     }
 }

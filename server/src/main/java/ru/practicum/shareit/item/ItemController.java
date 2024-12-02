@@ -25,7 +25,6 @@ public class ItemController {
 
     @GetMapping
     public List<ItemEnhancedDto> getByOwner(@RequestHeader("X-Sharer-User-Id") Long userId) {
-
         return itemService.getByOwner(userId);
     }
 

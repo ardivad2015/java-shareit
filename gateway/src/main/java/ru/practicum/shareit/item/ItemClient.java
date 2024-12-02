@@ -1,22 +1,17 @@
 package ru.practicum.shareit.item;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.shareit.client.BaseClient;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.NewItemDto;
 
-import java.util.List;
 import java.util.Map;
 
 @Service
@@ -58,6 +53,6 @@ public class ItemClient extends BaseClient {
     }
 
     public ResponseEntity<Object> addNewComment(Long userId, Long itemId, CommentDto commentDto) {
-        return post("/"+itemId+"/comment", userId, commentDto);
+        return post("/" + itemId + "/comment", userId, commentDto);
     }
 }

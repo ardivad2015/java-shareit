@@ -12,7 +12,6 @@ import ru.practicum.shareit.exception.NotFoundException;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice

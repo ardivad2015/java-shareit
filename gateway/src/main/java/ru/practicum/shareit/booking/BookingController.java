@@ -10,8 +10,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
 import ru.practicum.shareit.booking.dto.RequestBookingStateDto;
 
-import java.util.List;
-
 @RestController
 @RequestMapping(path = "/bookings")
 @RequiredArgsConstructor
