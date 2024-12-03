@@ -1,6 +1,5 @@
 package ru.practicum.shareit.booking.repository;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -30,10 +29,6 @@ class BookingRepositoryCustomTest {
     @Autowired
     ItemRepository itemRepository;
 
-    @BeforeEach
-    void saveData() {
-
-    }
     @Test
     void findAllByItemOwnerWithItemAndBookerEagerly() {
         final User owner = userRepository.save(ObjectsFactory.newUser("email", "owner"));

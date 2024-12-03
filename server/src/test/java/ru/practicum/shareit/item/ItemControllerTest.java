@@ -61,7 +61,7 @@ class ItemControllerTest {
     void searchItems() {
         final String text = "";
 
-        mockMvc.perform(get("/items/search?text="+text))
+        mockMvc.perform(get("/items/search?text=" + text))
                 .andExpect(status().isOk());
         verify(itemService).searchItems(stringArgumentCaptor.capture());
         final String actualText = stringArgumentCaptor.getValue();
